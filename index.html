@@ -98,6 +98,12 @@
           <span class="hidden sm:inline">Voice</span>
         </button>
 
+        <!-- Hiragana Chart Button in Header -->
+        <button id="nav-chart-btn" class="text-xs font-semibold px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-800/80 text-slate-300 border border-slate-700/60 hover:text-white hover:border-slate-600 transition flex items-center gap-1.5" title="Open Interactive Hiragana Chart">
+          <svg class="w-3.5 h-3.5 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+          <span class="hidden sm:inline">Chart</span>
+        </button>
+
         <!-- Auto Next Timer Control (Next to Voice Settings) -->
         <div id="nav-auto-next-control" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/60 text-xs font-semibold text-slate-300 shadow-sm transition">
           <label class="flex items-center gap-1.5 cursor-pointer hover:text-white transition select-none" title="Toggle Auto Progression">
@@ -141,9 +147,15 @@
         <p class="text-xs sm:text-sm text-slate-400">Choose your character set, practice parameters, and activity.</p>
       </div>
 
-      <!-- Set Selection Cards -->
+      <!-- Set Selection Cards Header with Chart Trigger Button -->
       <div class="space-y-2.5">
-        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400">Select Character Set</label>
+        <div class="flex items-center justify-between">
+          <label class="block text-xs font-bold uppercase tracking-wider text-slate-400">Select Character Set</label>
+          <button id="menu-chart-btn" type="button" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-rose-400 border border-rose-500/30 hover:border-rose-500/60 transition flex items-center gap-1.5 shadow-sm active:scale-95 cursor-pointer">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+            <span>Hiragana Chart</span>
+          </button>
+        </div>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
           <!-- Set 1 -->
           <label id="set-card-1" class="relative flex flex-col p-4 rounded-2xl border-2 border-rose-500 bg-rose-950/30 cursor-pointer transition hover:border-rose-400 shadow-sm">
@@ -721,6 +733,68 @@
     </div>
   </div>
 
+  <!-- Interactive Hiragana Chart Modal -->
+  <div id="chart-modal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-3xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+      <!-- Modal Header -->
+      <div class="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between gap-3 bg-slate-900/95 sticky top-0 z-10">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-rose-600 to-rose-400 flex items-center justify-center font-japanese font-black text-white text-base shadow-sm">
+            あ
+          </div>
+          <div>
+            <h3 class="font-extrabold text-sm sm:text-base text-white flex items-center gap-2">
+              Hiragana Reference Chart
+            </h3>
+            <p class="text-[11px] text-slate-400">Click or tap any character to play native audio pronunciation</p>
+          </div>
+        </div>
+        <button id="chart-modal-close" type="button" class="text-slate-400 hover:text-white p-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 transition" title="Close Chart">
+          ✕
+        </button>
+      </div>
+
+      <!-- Controls & Tabs -->
+      <div class="px-4 py-3 bg-slate-950/70 border-b border-slate-800/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+        <!-- Tabs -->
+        <div class="inline-flex p-1 bg-slate-900 rounded-xl border border-slate-800 text-xs font-semibold">
+          <button id="chart-tab-basic" type="button" class="px-3 py-1 rounded-lg bg-rose-600 text-white shadow-sm transition">
+            Gojūon (46)
+          </button>
+          <button id="chart-tab-dakuten" type="button" class="px-3 py-1 rounded-lg text-slate-400 hover:text-white transition">
+            Dakuten & P (25)
+          </button>
+          <button id="chart-tab-all" type="button" class="px-3 py-1 rounded-lg text-slate-400 hover:text-white transition">
+            All (71)
+          </button>
+        </div>
+
+        <!-- Filter Search -->
+        <div class="relative">
+          <input type="text" id="chart-search-input" placeholder="Search kana or romaji (e.g. ka, ぬ)..."
+            class="w-full sm:w-60 bg-slate-900 border border-slate-800 text-xs rounded-xl pl-8 pr-3 py-1.5 text-white placeholder:text-slate-400 outline-none focus:border-rose-500 font-sans">
+          <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </div>
+      </div>
+
+      <!-- Chart Content Grid -->
+      <div class="p-4 sm:p-6 overflow-y-auto flex-1 space-y-6">
+        <div id="chart-sections-container" class="space-y-6"></div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-3 sm:p-4 border-t border-slate-800 bg-slate-950/80 flex items-center justify-between text-[11px] text-slate-400">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span>Click a card to pronounce</span>
+        </div>
+        <button id="chart-modal-footer-close" type="button" class="px-4 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold transition">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Challenge Exit Confirmation Modal -->
   <div id="challenge-exit-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
     <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl text-center">
@@ -1103,6 +1177,8 @@
     const navMenuBtn = document.getElementById('nav-menu-btn');
     const navStatsBtn = document.getElementById('nav-stats-btn');
     const navVoiceBtn = document.getElementById('nav-voice-btn');
+    const navChartBtn = document.getElementById('nav-chart-btn');
+    const menuChartBtn = document.getElementById('menu-chart-btn');
     const navBackBtn = document.getElementById('nav-back-btn');
     const navEndSessionBtn = document.getElementById('nav-end-session-btn');
     const navDirControl = document.getElementById('nav-dir-control');
@@ -1220,6 +1296,17 @@
     const challengeStayBtn = document.getElementById('challenge-stay-btn');
     const challengeLeaveBtn = document.getElementById('challenge-leave-btn');
     let pendingExitAction = null;
+
+    // Hiragana Chart Modal Elements
+    const chartModal = document.getElementById('chart-modal');
+    const chartModalClose = document.getElementById('chart-modal-close');
+    const chartModalFooterClose = document.getElementById('chart-modal-footer-close');
+    const chartTabBasic = document.getElementById('chart-tab-basic');
+    const chartTabDakuten = document.getElementById('chart-tab-dakuten');
+    const chartTabAll = document.getElementById('chart-tab-all');
+    const chartSearchInput = document.getElementById('chart-search-input');
+    const chartSectionsContainer = document.getElementById('chart-sections-container');
+    let currentChartTab = "basic";
 
     function isChallengeActive() {
       const activeViews = ['view-flashcards', 'view-mcq', 'view-short', 'view-listening'];
@@ -2425,6 +2512,210 @@
 
     resetCancelBtn.addEventListener('click', () => resetConfirmModal.classList.add('hidden'));
 
+    // --- Interactive Hiragana Chart System ---
+    const GOJUON_ROWS = [
+      { name: "Vowels (あ行)", items: [
+        { kana: "あ", romaji: "a" }, { kana: "い", romaji: "i" }, { kana: "う", romaji: "u" }, { kana: "え", romaji: "e" }, { kana: "お", romaji: "o" }
+      ]},
+      { name: "K-Row (か行)", items: [
+        { kana: "か", romaji: "ka" }, { kana: "き", romaji: "ki" }, { kana: "く", romaji: "ku" }, { kana: "け", romaji: "ke" }, { kana: "こ", romaji: "ko" }
+      ]},
+      { name: "S-Row (さ行)", items: [
+        { kana: "さ", romaji: "sa" }, { kana: "し", romaji: "shi" }, { kana: "す", romaji: "su" }, { kana: "せ", romaji: "se" }, { kana: "そ", romaji: "so" }
+      ]},
+      { name: "T-Row (た行)", items: [
+        { kana: "た", romaji: "ta" }, { kana: "ち", romaji: "chi" }, { kana: "つ", romaji: "tsu" }, { kana: "て", romaji: "te" }, { kana: "と", romaji: "to" }
+      ]},
+      { name: "N-Row (な行)", items: [
+        { kana: "な", romaji: "na" }, { kana: "に", romaji: "ni" }, { kana: "ぬ", romaji: "nu" }, { kana: "ね", romaji: "ne" }, { kana: "の", romaji: "no" }
+      ]},
+      { name: "H-Row (は行)", items: [
+        { kana: "は", romaji: "ha" }, { kana: "ひ", romaji: "hi" }, { kana: "ふ", romaji: "fu" }, { kana: "へ", romaji: "he" }, { kana: "ほ", romaji: "ho" }
+      ]},
+      { name: "M-Row (ま行)", items: [
+        { kana: "ま", romaji: "ma" }, { kana: "み", romaji: "mi" }, { kana: "む", romaji: "mu" }, { kana: "め", romaji: "me" }, { kana: "も", romaji: "mo" }
+      ]},
+      { name: "Y-Row (や行)", items: [
+        { kana: "や", romaji: "ya" }, null, { kana: "ゆ", romaji: "yu" }, null, { kana: "よ", romaji: "yo" }
+      ]},
+      { name: "R-Row (ら行)", items: [
+        { kana: "ら", romaji: "ra" }, { kana: "り", romaji: "ri" }, { kana: "る", romaji: "ru" }, { kana: "れ", romaji: "re" }, { kana: "ろ", romaji: "ro" }
+      ]},
+      { name: "W & N (わ・を・ん)", items: [
+        { kana: "わ", romaji: "wa" }, null, null, null, { kana: "を", romaji: "wo" }
+      ]},
+      { name: "Syllabic N (ん)", items: [
+        { kana: "ん", romaji: "n" }, null, null, null, null
+      ]}
+    ];
+
+    const DAKUTEN_ROWS = [
+      { name: "G-Row / Voiced K (が行)", items: [
+        { kana: "が", romaji: "ga" }, { kana: "ぎ", romaji: "gi" }, { kana: "ぐ", romaji: "gu" }, { kana: "げ", romaji: "ge" }, { kana: "ご", romaji: "go" }
+      ]},
+      { name: "Z-Row / Voiced S (ざ行)", items: [
+        { kana: "ざ", romaji: "za" }, { kana: "じ", romaji: "ji" }, { kana: "ず", romaji: "zu" }, { kana: "ぜ", romaji: "ze" }, { kana: "ぞ", romaji: "zo" }
+      ]},
+      { name: "D-Row / Voiced T (だ行)", items: [
+        { kana: "だ", romaji: "da" }, { kana: "ぢ", romaji: "ji" }, { kana: "づ", romaji: "zu" }, { kana: "で", romaji: "de" }, { kana: "ど", romaji: "do" }
+      ]},
+      { name: "B-Row / Voiced H (ば行)", items: [
+        { kana: "ば", romaji: "ba" }, { kana: "び", romaji: "bi" }, { kana: "ぶ", romaji: "bu" }, { kana: "べ", romaji: "be" }, { kana: "ぼ", romaji: "bo" }
+      ]},
+      { name: "P-Row / Semi-Voiced H (ぱ行)", items: [
+        { kana: "ぱ", romaji: "pa" }, { kana: "ぴ", romaji: "pi" }, { kana: "ぷ", romaji: "pu" }, { kana: "ぺ", romaji: "pe" }, { kana: "ぽ", romaji: "po" }
+      ]}
+    ];
+
+    function openHiraganaChart() {
+      if (chartModal) chartModal.classList.remove('hidden');
+      renderChartContent();
+    }
+
+    function closeHiraganaChart() {
+      if (chartModal) chartModal.classList.add('hidden');
+    }
+
+    function renderChartContent() {
+      if (!chartSectionsContainer) return;
+      chartSectionsContainer.innerHTML = "";
+
+      const query = chartSearchInput ? chartSearchInput.value.trim().toLowerCase() : "";
+
+      let targetGroups = [];
+      if (currentChartTab === "basic") {
+        targetGroups = GOJUON_ROWS;
+      } else if (currentChartTab === "dakuten") {
+        targetGroups = DAKUTEN_ROWS;
+      } else {
+        targetGroups = [...GOJUON_ROWS, ...DAKUTEN_ROWS];
+      }
+
+      let totalRendered = 0;
+
+      targetGroups.forEach(group => {
+        // Filter by search query if present
+        const filteredItems = group.items.map(item => {
+          if (!item) return null;
+          if (!query) return item;
+          if (item.kana.includes(query) || item.romaji.toLowerCase().includes(query)) {
+            return item;
+          }
+          return null;
+        });
+
+        const hasAnyMatches = filteredItems.some(item => item !== null);
+        if (query && !hasAnyMatches) return;
+
+        totalRendered++;
+
+        const groupEl = document.createElement('div');
+        groupEl.className = "space-y-2";
+
+        const headerEl = document.createElement('div');
+        headerEl.className = "flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider pb-1 border-b border-slate-800/80";
+        headerEl.innerHTML = `<span>${group.name}</span>`;
+        groupEl.appendChild(headerEl);
+
+        const gridEl = document.createElement('div');
+        gridEl.className = "grid grid-cols-5 gap-2 sm:gap-2.5 pt-1";
+
+        group.items.forEach((item, colIdx) => {
+          if (!item) {
+            // Render styled placeholder for empty grid cells (like y-row / w-row)
+            const emptyCell = document.createElement('div');
+            emptyCell.className = "h-20 sm:h-22 rounded-2xl border border-dashed border-slate-800/40 bg-slate-950/20";
+            gridEl.appendChild(emptyCell);
+            return;
+          }
+
+          const isMatch = !query || (item.kana.includes(query) || item.romaji.toLowerCase().includes(query));
+          if (query && !isMatch) {
+            const emptyCell = document.createElement('div');
+            emptyCell.className = "h-20 sm:h-22 rounded-2xl border border-dashed border-slate-800/40 bg-slate-950/20";
+            gridEl.appendChild(emptyCell);
+            return;
+          }
+
+          const card = document.createElement('button');
+          card.type = "button";
+          card.className = "group relative h-20 sm:h-22 rounded-2xl bg-slate-950/80 border border-slate-800 hover:border-rose-500/60 hover:bg-slate-900/90 p-2 flex flex-col items-center justify-center transition transform active:scale-95 shadow-sm text-center cursor-pointer";
+          card.title = `Listen to "${item.kana}" (${item.romaji})`;
+
+          // Accuracy badge from stats if available
+          const stats = getCombinedKanaStats(item.kana);
+          let badgeHtml = '';
+          if (stats && stats.pct !== null) {
+            const colorClass = stats.pct >= 90 ? 'bg-emerald-400' : (stats.pct >= 70 ? 'bg-amber-400' : 'bg-rose-400');
+            badgeHtml = `<span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full ${colorClass}" title="Accuracy: ${Math.round(stats.pct)}%"></span>`;
+          }
+
+          card.innerHTML = `
+            ${badgeHtml}
+            <span class="font-japanese text-2xl sm:text-3xl font-extrabold text-white group-hover:text-rose-300 transition">${item.kana}</span>
+            <span class="text-[11px] sm:text-xs font-mono font-bold text-slate-400 group-hover:text-rose-400 transition mt-0.5">${item.romaji}</span>
+            <span class="opacity-0 group-hover:opacity-100 transition absolute bottom-1 right-1.5 text-[10px] text-slate-400">🔊</span>
+          `;
+
+          card.addEventListener('click', () => {
+            speakKana(item.kana);
+            card.classList.add('ring-2', 'ring-rose-500', 'bg-rose-950/40');
+            setTimeout(() => {
+              card.classList.remove('ring-2', 'ring-rose-500', 'bg-rose-950/40');
+            }, 300);
+          });
+
+          gridEl.appendChild(card);
+        });
+
+        groupEl.appendChild(gridEl);
+        chartSectionsContainer.appendChild(groupEl);
+      });
+
+      if (totalRendered === 0) {
+        chartSectionsContainer.innerHTML = `
+          <div class="py-12 text-center space-y-2">
+            <p class="text-slate-400 text-sm font-semibold">No kana characters matching "${query}"</p>
+            <button type="button" id="chart-clear-search-btn" class="text-xs text-rose-400 font-bold hover:underline">Clear Search</button>
+          </div>
+        `;
+        const clearBtn = document.getElementById('chart-clear-search-btn');
+        if (clearBtn) {
+          clearBtn.addEventListener('click', () => {
+            if (chartSearchInput) chartSearchInput.value = "";
+            renderChartContent();
+          });
+        }
+      }
+    }
+
+    function setChartTab(tab) {
+      currentChartTab = tab;
+      [chartTabBasic, chartTabDakuten, chartTabAll].forEach(b => {
+        if (b) b.className = "px-3 py-1 rounded-lg text-slate-400 hover:text-white transition";
+      });
+
+      if (tab === "basic" && chartTabBasic) {
+        chartTabBasic.className = "px-3 py-1 rounded-lg bg-rose-600 text-white shadow-sm transition";
+      } else if (tab === "dakuten" && chartTabDakuten) {
+        chartTabDakuten.className = "px-3 py-1 rounded-lg bg-rose-600 text-white shadow-sm transition";
+      } else if (tab === "all" && chartTabAll) {
+        chartTabAll.className = "px-3 py-1 rounded-lg bg-rose-600 text-white shadow-sm transition";
+      }
+
+      renderChartContent();
+    }
+
+    if (menuChartBtn) menuChartBtn.addEventListener('click', openHiraganaChart);
+    if (navChartBtn) navChartBtn.addEventListener('click', openHiraganaChart);
+    if (chartModalClose) chartModalClose.addEventListener('click', closeHiraganaChart);
+    if (chartModalFooterClose) chartModalFooterClose.addEventListener('click', closeHiraganaChart);
+
+    if (chartTabBasic) chartTabBasic.addEventListener('click', () => setChartTab("basic"));
+    if (chartTabDakuten) chartTabDakuten.addEventListener('click', () => setChartTab("dakuten"));
+    if (chartTabAll) chartTabAll.addEventListener('click', () => setChartTab("all"));
+    if (chartSearchInput) chartSearchInput.addEventListener('input', renderChartContent);
+
     resetConfirmBtn.addEventListener('click', () => {
       if (statsDatasetSelect.value === "practice") {
         practiceStats = {};
@@ -2595,12 +2886,21 @@
         if (
           document.activeElement !== shortInput &&
           document.activeElement !== listenInput &&
-          document.activeElement !== statsSearchInput
+          document.activeElement !== statsSearchInput &&
+          document.activeElement !== chartSearchInput
         ) {
           if (currentSessionMode === "practice" && (currentIndex > 0 || sessionHistory.length > currentIndex)) {
             e.preventDefault();
             goBackToPreviousQuestion();
           }
+        }
+      } else if (e.key === "Escape") {
+        if (chartModal && !chartModal.classList.contains('hidden')) {
+          closeHiraganaChart();
+        } else if (voiceModal && !voiceModal.classList.contains('hidden')) {
+          voiceModal.classList.add('hidden');
+        } else if (resetConfirmModal && !resetConfirmModal.classList.contains('hidden')) {
+          resetConfirmModal.classList.add('hidden');
         }
       }
     });
