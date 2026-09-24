@@ -1,0 +1,2639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Hiragana Master</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .font-japanese {
+      font-family: 'Noto Sans JP', 'Inter', sans-serif;
+    }
+    .perspective-1000 {
+      perspective: 1000px;
+    }
+    .transform-style-3d {
+      transform-style: preserve-3d;
+    }
+    .backface-hidden {
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+    .rotate-y-180 {
+      transform: rotateY(180deg);
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #090d16;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col selection:bg-rose-500/30 selection:text-rose-200">
+
+  <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800/80 px-4 py-3 sm:px-6">
+    <div class="max-w-5xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
+      <div class="flex items-center gap-2">
+        <button id="nav-home-btn" class="flex items-center gap-2 group text-left cursor-pointer focus:outline-none">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-rose-600 to-rose-400 flex items-center justify-center font-japanese font-black text-white text-lg shadow-lg shadow-rose-950/40 group-hover:scale-105 transition transform">
+            あ
+          </div>
+          <div>
+            <h1 class="text-sm sm:text-base font-extrabold tracking-tight text-white flex items-center gap-1.5">
+              Hiragana Master
+            </h1>
+            <p id="current-deck-badge" class="text-[10px] sm:text-xs text-rose-400 font-semibold tracking-wide uppercase">
+              Set 1: A to Ho (30)
+            </p>
+          </div>
+        </button>
+      </div>
+
+      <!-- Action Nav Controls -->
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <!-- Live Test Timer Display -->
+        <div id="nav-test-timer" class="hidden flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400 font-mono text-xs font-bold">
+          <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+          <span>⏱️</span>
+          <span id="nav-timer-display">00:00</span>
+        </div>
+
+        <!-- End Session Button (Only shown in Practice Mode during active run) -->
+        <button id="nav-end-session-btn" class="hidden text-xs font-bold px-3 py-1.5 rounded-xl bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 active:scale-95 transition flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+          <span class="hidden sm:inline">End Session</span>
+        </button>
+
+        <!-- Prompt Direction Dual Swap Control (Hiragana vs Romaji) -->
+        <div id="nav-dir-control" class="inline-flex items-center p-0.5 bg-slate-900 border border-slate-700/80 rounded-xl text-xs font-semibold select-none shadow-sm transition">
+          <button id="nav-dir-hiragana-btn" type="button" class="px-2.5 py-1 rounded-lg transition font-japanese text-xs font-bold text-slate-400 hover:text-white" title="Prompt question in Hiragana">
+            Hiragana
+          </button>
+          <button id="nav-dir-swap-btn" type="button" class="px-1.5 py-1 text-slate-400 hover:text-rose-400 transition" title="Swap prompt language">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/></svg>
+          </button>
+          <button id="nav-dir-romaji-btn" type="button" class="px-2.5 py-1 rounded-lg transition text-xs font-bold bg-rose-600 text-white shadow-sm" title="Prompt question in Romaji">
+            Romaji
+          </button>
+        </div>
+
+        <!-- Voice Settings Button -->
+        <button id="nav-voice-btn" class="text-xs font-semibold px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-800/80 text-slate-300 border border-slate-700/60 hover:text-white hover:border-slate-600 transition flex items-center gap-1.5" title="Audio & Voice Configuration">
+          <svg class="w-3.5 h-3.5 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+          <span class="hidden sm:inline">Voice</span>
+        </button>
+
+        <!-- Auto Next Timer Control (Next to Voice Settings) -->
+        <div id="nav-auto-next-control" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/60 text-xs font-semibold text-slate-300 shadow-sm transition">
+          <label class="flex items-center gap-1.5 cursor-pointer hover:text-white transition select-none" title="Toggle Auto Progression">
+            <span class="text-[11px] font-bold">Auto Next</span>
+            <input type="checkbox" id="nav-auto-next-toggle" checked class="w-3.5 h-3.5 accent-rose-500 rounded cursor-pointer">
+          </label>
+          <span class="text-slate-600 font-normal">|</span>
+          <select id="nav-auto-next-delay" class="bg-transparent text-[11px] font-mono font-bold text-rose-400 hover:text-rose-300 outline-none cursor-pointer" title="Auto Next delay duration">
+            <option value="0.2" class="bg-slate-900 text-slate-200">0.2s</option>
+            <option value="0.4" class="bg-slate-900 text-slate-200">0.4s</option>
+            <option value="0.6" class="bg-slate-900 text-slate-200">0.6s</option>
+            <option value="0.8" class="bg-slate-900 text-slate-200">0.8s</option>
+            <option value="1.2" class="bg-slate-900 text-slate-200">1.2s</option>
+            <option value="1.8" class="bg-slate-900 text-slate-200" selected>1.8s</option>
+            <option value="2.5" class="bg-slate-900 text-slate-200">2.5s</option>
+            <option value="3.5" class="bg-slate-900 text-slate-200">3.5s</option>
+            <option value="5.0" class="bg-slate-900 text-slate-200">5.0s</option>
+          </select>
+        </div>
+
+        <!-- Stats Button -->
+        <button id="nav-stats-btn" class="text-xs font-semibold px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-800/80 text-slate-300 border border-slate-700/60 hover:text-white hover:border-slate-600 transition flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+          <span class="hidden sm:inline">Stats</span>
+        </button>
+
+        <!-- Home Menu Button -->
+        <button id="nav-menu-btn" class="text-xs font-bold px-3 py-1.5 rounded-xl bg-rose-600 text-white hover:bg-rose-500 active:scale-95 shadow-md shadow-rose-950/40 transition">
+          Menu
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-5xl w-full mx-auto p-4 sm:p-6 flex flex-col justify-center">
+
+    <!-- VIEW 1: MAIN MENU (HUB & SELECTION) -->
+    <section id="view-menu" class="space-y-6 max-w-2xl mx-auto w-full py-4">
+      <div class="text-center space-y-1.5">
+        <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight">Hiragana Study Hub</h2>
+        <p class="text-xs sm:text-sm text-slate-400">Choose your character set, practice parameters, and activity.</p>
+      </div>
+
+      <!-- Set Selection Cards -->
+      <div class="space-y-2.5">
+        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400">Select Character Set</label>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          <!-- Set 1 -->
+          <label id="set-card-1" class="relative flex flex-col p-4 rounded-2xl border-2 border-rose-500 bg-rose-950/30 cursor-pointer transition hover:border-rose-400 shadow-sm">
+            <input type="radio" name="set-select" value="set1" checked class="sr-only">
+            <div class="flex items-center justify-between mb-1">
+              <span class="font-extrabold text-sm text-white">Set 1</span>
+              <span class="text-[11px] font-mono font-bold text-rose-300 bg-rose-900/60 px-2 py-0.5 rounded-full">30 Kana</span>
+            </div>
+            <p class="text-xs text-slate-300 font-japanese font-semibold">あ 〜 ほ (a to ho)</p>
+            <p class="text-[11px] text-slate-400 mt-1">Vowels, K, S, T, N, H rows</p>
+          </label>
+
+          <!-- Set 2 -->
+          <label id="set-card-2" class="relative flex flex-col p-4 rounded-2xl border-2 border-slate-800 bg-slate-900/60 cursor-pointer transition hover:border-slate-700 shadow-sm">
+            <input type="radio" name="set-select" value="set2" class="sr-only">
+            <div class="flex items-center justify-between mb-1">
+              <span class="font-extrabold text-sm text-white">Set 2</span>
+              <span class="text-[11px] font-mono font-bold text-slate-300 bg-slate-800 px-2 py-0.5 rounded-full">41 Kana</span>
+            </div>
+            <p class="text-xs text-slate-300 font-japanese font-semibold">ま 〜 ぽ (ma to po)</p>
+            <p class="text-[11px] text-slate-400 mt-1">M, Y, R, W/N, Dakuten & P</p>
+          </label>
+
+          <!-- Combined -->
+          <label id="set-card-both" class="relative flex flex-col p-4 rounded-2xl border-2 border-slate-800 bg-slate-900/60 cursor-pointer transition hover:border-slate-700 shadow-sm">
+            <input type="radio" name="set-select" value="both" class="sr-only">
+            <div class="flex items-center justify-between mb-1">
+              <span class="font-extrabold text-sm text-white">Combined</span>
+              <span class="text-[11px] font-mono font-bold text-slate-300 bg-slate-800 px-2 py-0.5 rounded-full">71 Kana</span>
+            </div>
+            <p class="text-xs text-slate-300 font-japanese font-semibold">あ 〜 ぽ (All Rows)</p>
+            <p class="text-[11px] text-slate-400 mt-1">Comprehensive full mastery</p>
+          </label>
+        </div>
+      </div>
+
+      <!-- Mode Selector: Practice vs Challenge -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Session Mode</span>
+            <p class="text-xs text-slate-400" id="mode-desc">Practice Mode: missed questions are reshuffled back until mastered.</p>
+          </div>
+          <div class="inline-flex p-1 bg-slate-950 rounded-xl border border-slate-800 self-start sm:self-auto">
+            <button id="mode-practice-btn" type="button" class="px-4 py-1.5 text-xs font-bold rounded-lg bg-rose-600 text-white shadow transition">
+              Practice
+            </button>
+            <button id="mode-test-btn" type="button" class="px-4 py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition">
+              Challenge
+            </button>
+          </div>
+        </div>
+
+        <!-- Practice Options Container -->
+        <div id="practice-options-container" class="pt-3 border-t border-slate-800/80 space-y-3">
+          <label class="flex items-center justify-between p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 hover:border-slate-700 cursor-pointer transition select-none">
+            <div class="pr-3">
+              <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                Unlimited Practice Loop (∞)
+              </span>
+              <p class="text-[11px] text-slate-400">Continues non-stop until you tap "End Session". Incorrect answers delay 10–30 cards.</p>
+            </div>
+            <input type="checkbox" id="unlimited-practice-toggle" class="w-4 h-4 rounded text-rose-600 focus:ring-rose-500 accent-rose-500 cursor-pointer">
+          </label>
+
+          <label id="weakest-practice-container" class="flex items-center justify-between p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 hover:border-slate-700 cursor-pointer transition select-none">
+            <div class="pr-3">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-white">Practice Weakest Kana Only (≤90% accuracy)</span>
+                <span id="weakest-count-badge" class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">0 eligible</span>
+                <span id="weakest-mode-restriction-tag" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">Practice Only</span>
+              </div>
+              <p id="weakest-desc-text" class="text-[11px] text-slate-400">Combines historical Test and Practice stats to target low-accuracy kana.</p>
+            </div>
+            <input type="checkbox" id="weakest-practice-toggle" class="w-4 h-4 rounded text-rose-600 focus:ring-rose-500 accent-rose-500 cursor-pointer">
+          </label>
+        </div>
+      </div>
+
+      <!-- Activity Selection Buttons -->
+      <div class="space-y-2.5">
+        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400">Choose Study Activity</label>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button id="start-flashcards-btn" class="flex items-center p-4 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-900/90 border border-slate-800 hover:border-rose-500/50 hover:bg-slate-800/80 text-left transition group shadow-sm">
+            <div class="w-12 h-12 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 text-xl font-bold mr-4 group-hover:scale-105 transition">
+              🗂️
+            </div>
+            <div>
+              <h3 class="font-extrabold text-sm text-white group-hover:text-rose-300 transition">Flashcards</h3>
+              <p class="text-xs text-slate-400">3D flip cards with mnemonics, audio, and manual scoring.</p>
+            </div>
+          </button>
+
+          <button id="start-mcq-btn" class="flex items-center p-4 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-900/90 border border-slate-800 hover:border-rose-500/50 hover:bg-slate-800/80 text-left transition group shadow-sm">
+            <div class="w-12 h-12 rounded-xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-xl font-bold mr-4 group-hover:scale-105 transition">
+              🎯
+            </div>
+            <div>
+              <h3 class="font-extrabold text-sm text-white group-hover:text-indigo-300 transition">Multiple Choice</h3>
+              <p class="text-xs text-slate-400">4 options, instantaneous chime feedback, auto-tracking.</p>
+            </div>
+          </button>
+
+          <button id="start-short-btn" class="flex items-center p-4 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-900/90 border border-slate-800 hover:border-rose-500/50 hover:bg-slate-800/80 text-left transition group shadow-sm">
+            <div class="w-12 h-12 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-xl font-bold mr-4 group-hover:scale-105 transition">
+              ✍️
+            </div>
+            <div>
+              <h3 class="font-extrabold text-sm text-white group-hover:text-emerald-300 transition">Short Answer (Kana)</h3>
+              <p class="text-xs text-slate-400">Type the Romaji reading. Strictly Kana prompt mode.</p>
+            </div>
+          </button>
+
+          <button id="start-listening-btn" class="flex items-center p-4 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-900/90 border border-slate-800 hover:border-rose-500/50 hover:bg-slate-800/80 text-left transition group shadow-sm">
+            <div class="w-12 h-12 rounded-xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center text-purple-400 text-xl font-bold mr-4 group-hover:scale-105 transition">
+              🎧
+            </div>
+            <div>
+              <h3 class="font-extrabold text-sm text-white group-hover:text-purple-300 transition">Listening Quiz</h3>
+              <p class="text-xs text-slate-400">Listen to spoken sound & type. Auto-converts to Kana.</p>
+            </div>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-flashcards" class="hidden max-w-xl mx-auto w-full py-4 space-y-5">
+      <div class="flex items-center justify-between text-xs text-slate-400">
+        <span id="fc-progress-pill" class="font-mono bg-slate-900 border border-slate-800 px-3 py-1 rounded-full font-bold">Card 1 of 30</span>
+        <span id="fc-mode-indicator" class="font-semibold text-rose-400">Practice Mode</span>
+      </div>
+
+      <div class="relative w-full h-80 sm:h-96 perspective-1000 select-none">
+        <div id="flashcard-inner" class="relative w-full h-full transform-style-3d transition-transform duration-500 cursor-pointer rounded-3xl shadow-2xl">
+          <!-- Front Face -->
+          <div class="absolute inset-0 backface-hidden bg-slate-900 border-2 border-slate-800 rounded-3xl p-6 sm:p-8 flex flex-col justify-between items-center text-center shadow-inner hover:border-slate-700 transition">
+            <div class="w-full flex justify-between items-center text-xs text-slate-400 font-semibold">
+              <span id="fc-front-label" class="uppercase tracking-widest text-[11px] text-slate-400">Romaji Prompt</span>
+              <span class="text-[11px] bg-slate-800 px-2 py-0.5 rounded-md text-slate-400">Click card or Space to flip</span>
+            </div>
+
+            <div class="my-auto flex flex-col items-center justify-center">
+              <div id="fc-front-text" class="text-6xl sm:text-7xl font-black text-white tracking-tight">a</div>
+              <p id="fc-front-sub" class="text-xs text-slate-400 mt-2">Recall character & flip to verify</p>
+            </div>
+
+            <div class="text-[11px] text-slate-400">Tap card to reveal answer & mnemonics</div>
+          </div>
+
+          <!-- Back Face -->
+          <div class="absolute inset-0 backface-hidden rotate-y-180 bg-slate-900 border-2 border-rose-500/40 rounded-3xl p-6 sm:p-8 flex flex-col justify-between items-center text-center shadow-inner">
+            <div class="w-full flex justify-between items-center text-xs text-slate-400 font-semibold">
+              <span id="fc-back-label" class="uppercase tracking-widest text-[11px] text-rose-400">Hiragana Target</span>
+              <button id="fc-audio-btn" type="button" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-rose-400 hover:text-rose-300 transition" title="Listen to pronunciation">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+              </button>
+            </div>
+
+            <div class="my-auto flex flex-col items-center justify-center space-y-2">
+              <div id="fc-back-text" class="text-7xl sm:text-8xl font-black text-rose-400 font-japanese">あ</div>
+              <div id="fc-back-reading" class="text-sm font-bold text-slate-300">Reading: <span class="font-mono text-rose-300">a</span></div>
+              <p id="fc-back-hint" class="text-xs text-slate-400 max-w-sm px-2">Pronounced 'ah'. Resembles an apple with a stem.</p>
+            </div>
+
+            <div class="text-[11px] text-slate-400">Score your recall below</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 pt-2">
+        <button id="fc-incorrect-btn" class="py-3 px-4 rounded-2xl bg-rose-950/40 border border-rose-800/60 hover:bg-rose-900/60 text-rose-300 font-extrabold text-sm flex items-center justify-center gap-2 active:scale-95 transition shadow-sm">
+          <svg class="w-4 h-4 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Incorrect
+        </button>
+        <button id="fc-correct-btn" class="py-3 px-4 rounded-2xl bg-emerald-950/40 border border-emerald-800/60 hover:bg-emerald-900/60 text-emerald-300 font-extrabold text-sm flex items-center justify-center gap-2 active:scale-95 transition shadow-sm">
+          <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Correct
+        </button>
+      </div>
+    </section>
+
+    <section id="view-mcq" class="hidden max-w-xl mx-auto w-full py-4 space-y-5">
+      <div class="flex items-center justify-between text-xs text-slate-400">
+        <span id="mcq-progress-pill" class="font-mono bg-slate-900 border border-slate-800 px-3 py-1 rounded-full font-bold">Question 1 of 30</span>
+        
+        <div class="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1 rounded-full text-slate-300">
+          <label class="flex items-center gap-1.5 cursor-pointer hover:text-white transition">
+            <span class="text-[11px] font-bold">Auto Next</span>
+            <input type="checkbox" id="mcq-auto-next-toggle" checked class="w-3.5 h-3.5 accent-rose-500 rounded cursor-pointer">
+          </label>
+          <span class="text-slate-700">|</span>
+          <div class="flex items-center gap-1">
+            <select id="mcq-auto-next-delay" class="bg-transparent text-[11px] font-mono font-bold text-rose-400 hover:text-rose-300 outline-none cursor-pointer" title="Auto Next delay duration">
+              <option value="0.2" class="bg-slate-900 text-slate-200">0.2s</option>
+              <option value="0.4" class="bg-slate-900 text-slate-200">0.4s</option>
+              <option value="0.6" class="bg-slate-900 text-slate-200">0.6s</option>
+              <option value="0.8" class="bg-slate-900 text-slate-200">0.8s</option>
+              <option value="1.2" class="bg-slate-900 text-slate-200">1.2s</option>
+              <option value="1.8" class="bg-slate-900 text-slate-200" selected>1.8s</option>
+              <option value="2.5" class="bg-slate-900 text-slate-200">2.5s</option>
+              <option value="3.5" class="bg-slate-900 text-slate-200">3.5s</option>
+              <option value="5.0" class="bg-slate-900 text-slate-200">5.0s</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 text-center shadow-xl space-y-2">
+        <p id="mcq-prompt-sub" class="text-xs font-bold uppercase tracking-widest text-slate-400">Select the corresponding Hiragana</p>
+        <div id="mcq-prompt-text" class="text-6xl sm:text-7xl font-black text-white my-4">a</div>
+        <p id="mcq-feedback-text" class="h-6 text-xs font-bold text-slate-400"></p>
+      </div>
+
+      <div id="mcq-options-grid" class="grid grid-cols-2 gap-3 pt-2"></div>
+
+      <div class="flex justify-end pt-1">
+        <button id="mcq-next-btn" class="hidden px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow">
+          <span>Next Question</span>
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <section id="view-short" class="hidden max-w-xl mx-auto w-full py-4 space-y-5">
+      <div class="flex items-center justify-between text-xs text-slate-400">
+        <span id="short-progress-pill" class="font-mono bg-slate-900 border border-slate-800 px-3 py-1 rounded-full font-bold">Question 1 of 30</span>
+        
+        <div class="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1 rounded-full text-slate-300">
+          <label class="flex items-center gap-1.5 cursor-pointer hover:text-white transition">
+            <span class="text-[11px] font-bold">Auto Next</span>
+            <input type="checkbox" id="short-auto-next-toggle" checked class="w-3.5 h-3.5 accent-rose-500 rounded cursor-pointer">
+          </label>
+          <span class="text-slate-700">|</span>
+          <div class="flex items-center gap-1">
+            <select id="short-auto-next-delay" class="bg-transparent text-[11px] font-mono font-bold text-rose-400 hover:text-rose-300 outline-none cursor-pointer" title="Auto Next delay duration">
+              <option value="0.2" class="bg-slate-900 text-slate-200">0.2s</option>
+              <option value="0.4" class="bg-slate-900 text-slate-200">0.4s</option>
+              <option value="0.6" class="bg-slate-900 text-slate-200">0.6s</option>
+              <option value="0.8" class="bg-slate-900 text-slate-200">0.8s</option>
+              <option value="1.2" class="bg-slate-900 text-slate-200">1.2s</option>
+              <option value="1.8" class="bg-slate-900 text-slate-200" selected>1.8s</option>
+              <option value="2.5" class="bg-slate-900 text-slate-200">2.5s</option>
+              <option value="3.5" class="bg-slate-900 text-slate-200">3.5s</option>
+              <option value="5.0" class="bg-slate-900 text-slate-200">5.0s</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-8 text-center shadow-xl space-y-2">
+        <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Type the Romaji Reading</span>
+        <div id="short-prompt-kana" class="text-7xl sm:text-8xl font-black text-white font-japanese py-2">あ</div>
+        <p class="text-xs text-slate-400">Strictly Kana prompt mode. Type your answer and press Enter.</p>
+      </div>
+
+      <form id="short-form" class="w-full max-w-md sm:max-w-lg mx-auto space-y-3" autocomplete="off">
+        <div class="relative w-full">
+          <input type="text" id="short-input" placeholder="e.g. ka, shi, tsu..." autofocus
+            class="w-full h-12 sm:h-14 bg-slate-900 border-2 border-slate-800 focus:border-rose-500 text-white rounded-2xl px-5 py-0 text-center text-xl sm:text-2xl font-bold tracking-wider placeholder:text-slate-400 outline-none transition shadow-inner">
+        </div>
+        <button type="submit" id="short-submit-btn" class="w-full py-3 sm:py-3.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-sm transition shadow-lg shadow-rose-950/40 active:scale-95">
+          Submit Answer
+        </button>
+      </form>
+
+      <div id="short-feedback-box" class="hidden p-4 rounded-2xl border text-center transition">
+        <p id="short-feedback-title" class="font-extrabold text-sm"></p>
+        <p id="short-feedback-detail" class="text-xs mt-1 text-slate-300"></p>
+      </div>
+
+      <div class="flex justify-end pt-1">
+        <button id="short-next-btn" class="hidden px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow">
+          <span>Next Question</span>
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <section id="view-listening" class="hidden max-w-xl mx-auto w-full py-4 space-y-5">
+      <div class="flex items-center justify-between text-xs text-slate-400">
+        <span id="listen-progress-pill" class="font-mono bg-slate-900 border border-slate-800 px-3 py-1 rounded-full font-bold">Audio 1 of 30</span>
+        
+        <div class="flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1 rounded-full text-slate-300">
+          <label class="flex items-center gap-1.5 cursor-pointer hover:text-white transition">
+            <span class="text-[11px] font-bold">Auto Next</span>
+            <input type="checkbox" id="listen-auto-next-toggle" checked class="w-3.5 h-3.5 accent-rose-500 rounded cursor-pointer">
+          </label>
+          <span class="text-slate-700">|</span>
+          <div class="flex items-center gap-1">
+            <select id="listen-auto-next-delay" class="bg-transparent text-[11px] font-mono font-bold text-rose-400 hover:text-rose-300 outline-none cursor-pointer" title="Auto Next delay duration">
+              <option value="0.2" class="bg-slate-900 text-slate-200">0.2s</option>
+              <option value="0.4" class="bg-slate-900 text-slate-200">0.4s</option>
+              <option value="0.6" class="bg-slate-900 text-slate-200">0.6s</option>
+              <option value="0.8" class="bg-slate-900 text-slate-200">0.8s</option>
+              <option value="1.2" class="bg-slate-900 text-slate-200">1.2s</option>
+              <option value="1.8" class="bg-slate-900 text-slate-200" selected>1.8s</option>
+              <option value="2.5" class="bg-slate-900 text-slate-200">2.5s</option>
+              <option value="3.5" class="bg-slate-900 text-slate-200">3.5s</option>
+              <option value="5.0" class="bg-slate-900 text-slate-200">5.0s</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 text-center shadow-xl space-y-4">
+        <span class="text-xs font-bold uppercase tracking-widest text-slate-400">Audio Dictation</span>
+        
+        <div id="listen-speaker-card" class="w-20 h-20 mx-auto rounded-2xl bg-slate-950 border border-slate-800 hover:border-rose-500/60 flex items-center justify-center text-rose-400 cursor-pointer hover:scale-105 transition active:scale-95 shadow-md group" title="Click or press Space to replay sound">
+          <svg class="w-9 h-9 group-hover:scale-110 transition" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        </div>
+
+        <p class="text-xs text-slate-400">Listen carefully and type the kana or romaji (auto-converts to Kana)</p>
+      </div>
+
+      <form id="listen-form" class="w-full max-w-md sm:max-w-lg mx-auto space-y-3 flex flex-col items-center" autocomplete="off">
+        <div class="relative w-full">
+          <input type="text" id="listen-input" placeholder="Type romaji or kana..." autofocus
+            class="w-full h-12 sm:h-14 bg-slate-900 border-2 border-slate-800 focus:border-rose-500 text-white rounded-2xl px-5 py-0 text-center placeholder:text-center text-xl sm:text-2xl font-bold placeholder:text-sm sm:placeholder:text-base placeholder:text-slate-400 outline-none transition shadow-inner leading-none" style="font-family: 'Inter', 'Noto Sans JP', sans-serif;">
+        </div>
+        <button type="submit" id="listen-submit-btn" class="w-full py-3 sm:py-3.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-sm transition shadow-lg shadow-rose-950/40 active:scale-95 flex items-center justify-center gap-2">
+          <span>Submit Kana</span>
+        </button>
+      </form>
+
+      <div id="listen-feedback-box" class="hidden p-4 rounded-2xl border text-center transition">
+        <p id="listen-feedback-title" class="font-extrabold text-sm"></p>
+        <p id="listen-feedback-detail" class="text-xs mt-1 text-slate-300"></p>
+      </div>
+
+      <div class="flex justify-end pt-1">
+        <button id="listen-next-btn" class="hidden px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition flex items-center gap-1.5 shadow">
+          <span>Next Audio</span>
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <section id="view-results" class="hidden max-w-xl mx-auto w-full py-4 space-y-6">
+      <div class="text-center space-y-1">
+        <span class="text-xs font-bold uppercase tracking-wider text-rose-400">Session Complete</span>
+        <h2 class="text-2xl sm:text-3xl font-black text-white">Performance Summary</h2>
+      </div>
+
+      <div id="breakthrough-banner" class="hidden p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-rose-500/15 to-purple-500/15 border border-amber-500/40 shadow-lg text-center space-y-2">
+        <div class="text-amber-300 font-extrabold text-sm flex items-center justify-center gap-1.5">
+          <span>🌟</span>
+          <span id="breakthrough-text">Incredible Breakthrough!</span>
+        </div>
+        <p class="text-xs text-slate-300" id="breakthrough-detail">You conquered characters that were historically under 80% accuracy!</p>
+        <div id="breakthrough-kana-chips" class="flex flex-wrap items-center justify-center gap-1.5 pt-1"></div>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-2xl text-center">
+          <p class="text-[10px] text-slate-400 font-bold uppercase">Accuracy</p>
+          <p id="res-accuracy" class="text-2xl font-black text-rose-400 mt-1">100%</p>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-2xl text-center">
+          <p class="text-[10px] text-slate-400 font-bold uppercase">Time Taken</p>
+          <p id="res-time-taken" class="text-2xl font-black text-amber-300 mt-1 font-mono">--:--</p>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-2xl text-center">
+          <p class="text-[10px] text-slate-400 font-bold uppercase">Correct</p>
+          <p id="res-correct" class="text-2xl font-black text-emerald-400 mt-1">0</p>
+        </div>
+        <div class="bg-slate-900 border border-slate-800 p-3.5 rounded-2xl text-center">
+          <p class="text-[10px] text-slate-400 font-bold uppercase">Mistakes</p>
+          <p id="res-wrong" class="text-2xl font-black text-rose-500 mt-1">0</p>
+        </div>
+      </div>
+
+      <div id="res-time-comparison-card" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-2">
+        <div class="flex items-center justify-between text-xs">
+          <span class="font-extrabold text-white flex items-center gap-1.5">
+            <span>⏱️</span> Challenge Speed Performance
+          </span>
+          <span id="res-time-mode-badge" class="font-mono text-[11px] text-rose-400 font-semibold bg-rose-950/60 px-2.5 py-0.5 rounded-full border border-rose-900/60">Flashcards</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1">
+          <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+            <p class="text-[10px] text-slate-400 font-bold uppercase">vs. All-Time Avg</p>
+            <p id="res-all-time-time-comp" class="mt-0.5 text-xs text-slate-200">Calculating...</p>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+            <p class="text-[10px] text-slate-400 font-bold uppercase">vs. Running 8-Test Avg</p>
+            <p id="res-running-8-time-comp" class="mt-0.5 text-xs text-slate-200">Calculating...</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between text-xs">
+        <span class="text-slate-400 font-medium">Session vs. All-Time Accuracy:</span>
+        <span id="res-comparison" class="font-bold font-mono px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-300">
+          Comparing...
+        </span>
+      </div>
+
+      <div id="res-missed-container" class="space-y-2.5">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Review Missed Characters</h3>
+        <div id="res-missed-list" class="space-y-2 max-h-56 overflow-y-auto pr-1"></div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 pt-2">
+        <button id="res-retry-btn" class="py-3 px-4 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-sm transition shadow-lg shadow-rose-950/40">
+          Practice Again
+        </button>
+        <button id="res-menu-btn" class="py-3 px-4 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-extrabold text-sm transition">
+          Return to Hub
+        </button>
+      </div>
+    </section>
+
+    <section id="view-stats" class="hidden max-w-4xl mx-auto w-full py-4 space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-2xl font-black text-white">Historical Performance Analytics</h2>
+          <p class="text-xs text-slate-400">Detailed accuracy tracking, speed metrics, and mode averages.</p>
+        </div>
+        <button id="stats-close-btn" class="self-start sm:self-auto px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-white transition">
+          Close Stats
+        </button>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-4 shadow-xl">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+          <div>
+            <h3 class="font-extrabold text-sm text-white flex items-center gap-2">
+              <span>⏱️</span> Challenge Mode Speed Benchmarks
+            </h3>
+            <p class="text-xs text-slate-400">Separate time records for each activity mode, tracked on full test completion.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400 font-bold uppercase">Set:</span>
+            <select id="stats-time-set-select" class="bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl px-2.5 py-1.5 outline-none focus:border-rose-500 font-mono">
+              <option value="set1">Set 1 (30 Kana)</option>
+              <option value="set2">Set 2 (41 Kana)</option>
+              <option value="both">Combined (71 Kana)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" id="stats-time-grid"></div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Dataset</label>
+          <select id="stats-dataset-select" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl p-2.5 outline-none focus:border-rose-500 font-medium">
+            <option value="test">Official Challenge History</option>
+            <option value="practice">Practice Runs History</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Activity Mode</label>
+          <select id="stats-mode-select" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl p-2.5 outline-none focus:border-rose-500 font-medium">
+            <option value="all">All Activities Combined</option>
+            <option value="flashcards">Flashcards</option>
+            <option value="mcq">Multiple Choice Quiz</option>
+            <option value="short">Short Answer</option>
+            <option value="listening">Listening Quiz</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Prompt Direction</label>
+          <select id="stats-dir-select" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl p-2.5 outline-none focus:border-rose-500 font-medium">
+            <option value="all">Combined Directions</option>
+            <option value="romaji_front">Romaji Front (Prompt)</option>
+            <option value="hiragana_front">Hiragana Front (Prompt)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between gap-3">
+        <input type="text" id="stats-search-input" placeholder="Search kana or romaji (e.g. ka, あ)..."
+          class="w-64 bg-slate-900 border border-slate-800 text-xs rounded-xl px-3 py-2 text-white placeholder:text-slate-400 outline-none focus:border-rose-500">
+        <button id="stats-reset-btn" class="text-xs font-bold text-rose-400 hover:text-rose-300 underline cursor-pointer">
+          Reset Filtered Data
+        </button>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+        <div class="max-h-96 overflow-y-auto">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="bg-slate-950 text-slate-400 uppercase tracking-wider text-[10px] font-bold sticky top-0 border-b border-slate-800">
+              <tr>
+                <th class="py-3 px-4">Kana</th>
+                <th class="py-3 px-4">Romaji</th>
+                <th class="py-3 px-4 text-center">Correct</th>
+                <th class="py-3 px-4 text-center">Incorrect</th>
+                <th class="py-3 px-4 text-center">Attempts</th>
+                <th class="py-3 px-4 text-right">Accuracy</th>
+              </tr>
+            </thead>
+            <tbody id="stats-table-body" class="divide-y divide-slate-800/60 font-mono"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="voice-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <h3 class="font-extrabold text-base text-white flex items-center gap-2">
+          <span>🔊</span> Voice & Audio Configuration
+        </h3>
+        <button id="voice-modal-close" class="text-slate-400 hover:text-white p-1 rounded-lg">✕</button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div>
+          <label class="block font-bold text-slate-300 mb-1.5 uppercase tracking-wider text-[11px]">Japanese Speech Voice</label>
+          <select id="voice-picker-select" class="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl p-3 outline-none focus:border-rose-500 font-sans"></select>
+          <p class="text-[11px] text-slate-400 mt-1">Voices marked with ✨ are high-quality natural/neural speech engines.</p>
+        </div>
+
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="font-bold text-slate-300 uppercase tracking-wider text-[11px]">Speech Speed</label>
+            <span id="voice-speed-val" class="font-mono font-bold text-rose-400">0.7x</span>
+          </div>
+          <input type="range" id="voice-speed-slider" min="0.3" max="1.3" step="0.05" value="0.7" class="w-full accent-rose-500 cursor-pointer">
+          <div class="flex justify-between text-[10px] text-slate-400 font-mono mt-1">
+            <span>0.3x (Slow)</span>
+            <span>0.7x (Optimal)</span>
+            <span>1.3x (Fast)</span>
+          </div>
+        </div>
+
+        <!-- Hatsune Miku Voice Mode Setting -->
+        <div class="p-3 rounded-2xl bg-gradient-to-r from-teal-950/40 to-cyan-950/30 border border-teal-500/40 flex items-center justify-between">
+          <div class="pr-3">
+            <div class="flex items-center gap-1.5">
+              <span class="text-xs font-black text-teal-300">初音ミク Mode</span>
+              <span class="text-[9px] font-extrabold uppercase px-1.5 py-0.2 rounded bg-teal-400/20 text-teal-300 border border-teal-400/40">HD Clarity</span>
+            </div>
+            <p class="text-[11px] text-slate-400 mt-0.5">Clear anime/Vocaloid vocal tuning with formant preservation and zero audio distortion.</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer select-none">
+            <input type="checkbox" id="voice-miku-toggle" class="w-4 h-4 rounded text-teal-500 focus:ring-teal-400 accent-teal-400 cursor-pointer">
+          </label>
+        </div>
+
+        <div class="pt-2 flex items-center gap-3">
+          <button id="voice-test-btn" type="button" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold transition">
+            Preview Voice ("こんにちは")
+          </button>
+          <button id="voice-save-btn" type="button" class="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold transition">
+            Apply Settings
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reset Confirmation Modal -->
+  <div id="reset-confirm-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl text-center">
+      <div class="w-12 h-12 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-400 flex items-center justify-center mx-auto text-xl font-bold">
+        ⚠️
+      </div>
+      <h3 class="font-extrabold text-white text-base">Reset Historical Data?</h3>
+      <p class="text-xs text-slate-400">Are you sure you want to erase all stats for the selected dataset and filter? This action cannot be undone.</p>
+      <div class="grid grid-cols-2 gap-3 pt-2">
+        <button id="reset-cancel-btn" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition">
+          Cancel
+        </button>
+        <button id="reset-confirm-btn" class="py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs transition">
+          Confirm Reset
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Challenge Exit Confirmation Modal -->
+  <div id="challenge-exit-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl text-center">
+      <div class="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto text-xl font-bold">
+        ⚠️
+      </div>
+      <h3 class="font-extrabold text-white text-base">Exit Challenge Run?</h3>
+      <p class="text-xs text-slate-400 leading-relaxed">
+        Are you sure? <span class="text-amber-300 font-bold">This session will not be counted</span> and your timed progress will be discarded.
+      </p>
+      <div class="grid grid-cols-2 gap-3 pt-2">
+        <button id="challenge-stay-btn" type="button" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition">
+          Stay in Test
+        </button>
+        <button id="challenge-leave-btn" type="button" class="py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs transition shadow-lg shadow-rose-950/40">
+          Leave Session
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const HIRAGANA_SET_1 = [
+      { kana: "あ", romaji: "a", hint: "Pronounced 'ah'. Looks like an apple with a stem." },
+      { kana: "い", romaji: "i", hint: "Pronounced 'ee'. Resembles two eels swimming together." },
+      { kana: "う", romaji: "u", hint: "Pronounced 'oo'. Resembles an elder bent over in the wind." },
+      { kana: "え", romaji: "e", hint: "Pronounced 'eh'. Looks like an energetic runner." },
+      { kana: "お", romaji: "o", hint: "Pronounced 'oh'. Looks like a singer singing on stage." },
+      { kana: "か", romaji: "ka", hint: "Pronounced 'kah'. Resembles someone slicing a card." },
+      { kana: "き", romaji: "ki", hint: "Pronounced 'kee'. Resembles a skeleton key." },
+      { kana: "く", romaji: "ku", hint: "Pronounced 'koo'. Looks like a cuckoo bird's open beak." },
+      { kana: "け", romaji: "ke", hint: "Pronounced 'keh'. Looks like the wooden slats of a keg." },
+      { kana: "こ", romaji: "ko", hint: "Pronounced 'koh'. Looks like two swimming koi fish." },
+      { kana: "さ", romaji: "sa", hint: "Pronounced 'sah'. Resembles a cup of sake." },
+      { kana: "し", romaji: "shi", hint: "Pronounced 'shee'. Resembles a silver fishing hook." },
+      { kana: "す", romaji: "su", hint: "Pronounced 'soo'. Resembles a spoon swirling in soup." },
+      { kana: "せ", romaji: "se", hint: "Pronounced 'seh'. Someone asking you to 'set' yourself down." },
+      { kana: "そ", romaji: "so", hint: "Pronounced 'soh'. Resembles the zigzag thread of a sewing needle." },
+      { kana: "た", romaji: "ta", hint: "Pronounced 'tah'. Looks literally like 'ta' written together." },
+      { kana: "ち", romaji: "chi", hint: "Pronounced 'chee'. Looks like a cheerleader or number 5." },
+      { kana: "つ", romaji: "tsu", hint: "Pronounced 'tsoo'. Looks like the crest of a tsunami wave." },
+      { kana: "て", romaji: "te", hint: "Pronounced 'teh'. Looks like a curled dog tail." },
+      { kana: "と", romaji: "to", hint: "Pronounced 'toh'. Looks like a thorn stuck in a big toe." },
+      { kana: "な", romaji: "na", hint: "Pronounced 'nah'. A nun kneeling before a cross." },
+      { kana: "に", romaji: "ni", hint: "Pronounced 'nee'. Looks like a sewing needle and thread." },
+      { kana: "ぬ", romaji: "nu", hint: "Pronounced 'noo'. Resembles chopsticks tangled in noodles." },
+      { kana: "ね", romaji: "ne", hint: "Pronounced 'neh'. Looks like a cat (neko) with a curved tail." },
+      { kana: "の", romaji: "no", hint: "Pronounced 'noh'. Looks like a circular 'NO' sign." },
+      { kana: "は", romaji: "ha", hint: "Pronounced 'hah'. Looks like the letter 'h' with a circle." },
+      { kana: "ひ", romaji: "hi", hint: "Pronounced 'hee'. Looks like a laughing mouth smiling 'hee-hee'." },
+      { kana: "ふ", romaji: "fu", hint: "Pronounced 'foo/hu'. Resembles the peak of Mount Fuji." },
+      { kana: "へ", romaji: "he", hint: "Pronounced 'heh'. Points up to a hill or heaven." },
+      { kana: "ほ", romaji: "ho", hint: "Pronounced 'hoh'. Looks like は wearing a hat (Santa says 'ho-ho')." }
+    ];
+
+    const HIRAGANA_SET_2 = [
+      { kana: "ま", romaji: "ma", hint: "Pronounced 'mah'. Looks like a mast on a ship." },
+      { kana: "み", romaji: "mi", hint: "Pronounced 'mee'. Looks like the lucky number 21." },
+      { kana: "む", romaji: "mu", hint: "Pronounced 'moo'. Looks like a cow's face saying moo." },
+      { kana: "め", romaji: "me", hint: "Pronounced 'meh'. Looks like noodles dropped with no loop." },
+      { kana: "も", romaji: "mo", hint: "Pronounced 'moh'. A hook to catch more fish." },
+      { kana: "や", romaji: "ya", hint: "Pronounced 'yah'. Looks like a yak's horn." },
+      { kana: "ゆ", romaji: "yu", hint: "Pronounced 'yoo'. Looks like a unique fish." },
+      { kana: "よ", romaji: "yo", hint: "Pronounced 'yoh'. A toy yo-yo hanging on a string." },
+      { kana: "ら", romaji: "ra", hint: "Pronounced 'rah'. A rabbit sitting on its haunches." },
+      { kana: "り", romaji: "ri", hint: "Pronounced 'ree'. Two reeds swaying by the river." },
+      { kana: "る", romaji: "ru", hint: "Pronounced 'roo'. Resembles 3 with a loop at the bottom." },
+      { kana: "れ", romaji: "re", hint: "Pronounced 'reh'. A person resting by a tree." },
+      { kana: "ろ", romaji: "ro", hint: "Pronounced 'roh'. Resembles 3 whose loop was robbed." },
+      { kana: "わ", romaji: "wa", hint: "Pronounced 'wah'. A swan with an arching neck." },
+      { kana: "を", romaji: "wo", hint: "Pronounced 'oh/wo'. A person caught in Olympic hurdles." },
+      { kana: "ん", romaji: "n", hint: "Pronounced 'n'. Looks like the lowercase cursive letter 'n'." },
+      { kana: "が", romaji: "ga", hint: "Voiced 'ka'. Slicing garlic." },
+      { kana: "ぎ", romaji: "gi", hint: "Voiced 'ki'. A sparkling guitar key." },
+      { kana: "ぐ", romaji: "gu", hint: "Voiced 'ku'. Goo dripping from a beak." },
+      { kana: "げ", romaji: "ge", hint: "Voiced 'ke'. A keg with drops of glue." },
+      { kana: "ご", romaji: "go", hint: "Voiced 'ko'. Two glowing gold coins." },
+      { kana: "ざ", romaji: "za", hint: "Voiced 'sa'. Sparkling glass of sake." },
+      { kana: "じ", romaji: "ji", hint: "Voiced 'shi'. A fishing line hooked on jeans." },
+      { kana: "ず", romaji: "zu", hint: "Voiced 'su'. Swimming through the zoo." },
+      { kana: "ぜ", romaji: "ze", hint: "Voiced 'se'. Setting down a zebra." },
+      { kana: "ぞ", romaji: "zo", hint: "Voiced 'so'. Sewing on a zesty zipper." },
+      { kana: "だ", romaji: "da", hint: "Voiced 'ta'. A dad drumming." },
+      { kana: "ぢ", romaji: "ji", hint: "Voiced 'chi'. Cheerleader jumping with vigor." },
+      { kana: "づ", romaji: "zu", hint: "Voiced 'tsu'. Tidal tsunami wave crashing down." },
+      { kana: "で", romaji: "de", hint: "Voiced 'te'. A dog wagging its tail delightfully." },
+      { kana: "ど", romaji: "do", hint: "Voiced 'to'. A diamond stuck on a toe." },
+      { kana: "ば", romaji: "ba", hint: "Voiced 'ha'. Barking loudly." },
+      { kana: "び", romaji: "bi", hint: "Voiced 'hi'. A beam of bright sunshine." },
+      { kana: "ぶ", romaji: "bu", hint: "Voiced 'fu'. A bustling boot." },
+      { kana: "べ", romaji: "be", hint: "Voiced 'he'. A bell hanging over a hill." },
+      { kana: "ぼ", romaji: "bo", hint: "Voiced 'ho'. Santa bowling a strike." },
+      { kana: "ぱ", romaji: "pa", hint: "Semi-voiced 'ha'. Popping party balloon." },
+      { kana: "ぴ", romaji: "pi", hint: "Semi-voiced 'hi'. Sparkling pizza slice." },
+      { kana: "ぷ", romaji: "pu", hint: "Semi-voiced 'fu'. Puffy bubble popping." },
+      { kana: "ぺ", romaji: "pe", hint: "Semi-voiced 'he'. A penguin sliding down." },
+      { kana: "ぽ", romaji: "po", hint: "Semi-voiced 'ho'. A polished post." }
+    ];
+
+    const ROMAJI_TO_KANA = {
+      "a": "あ", "i": "い", "u": "う", "e": "え", "o": "お",
+      "ka": "か", "ki": "き", "ku": "く", "ke": "け", "ko": "こ",
+      "sa": "さ", "shi": "し", "si": "し", "su": "す", "se": "せ", "so": "そ",
+      "ta": "た", "chi": "ち", "ti": "ち", "tsu": "つ", "tu": "つ", "te": "て", "to": "と",
+      "na": "な", "ni": "に", "nu": "ぬ", "ne": "ね", "no": "の",
+      "ha": "は", "hi": "ひ", "fu": "ふ", "hu": "ふ", "he": "へ", "ho": "ほ",
+      "ma": "ま", "mi": "み", "mu": "む", "me": "め", "mo": "も",
+      "ya": "や", "yu": "ゆ", "yo": "よ",
+      "ra": "ら", "ri": "り", "ru": "る", "re": "れ", "ro": "ろ",
+      "wa": "わ", "wo": "を", "nn": "ん", "n": "ん",
+      "ga": "が", "gi": "ぎ", "gu": "ぐ", "ge": "げ", "go": "ご",
+      "za": "ざ", "ji": "じ", "zi": "じ", "zu": "ず", "ze": "ぜ", "zo": "ぞ",
+      "da": "だ", "di": "ぢ", "du": "づ", "de": "デ", "do": "ど",
+      "ba": "ば", "bi": "び", "bu": "ぶ", "be": "べ", "bo": "ぼ",
+      "pa": "ぱ", "pi": "ぴ", "pu": "ぷ", "pe": "ぺ", "po": "ぽ"
+    };
+
+    function convertRomajiToKana(text) {
+      let str = text.toLowerCase();
+      const keys = Object.keys(ROMAJI_TO_KANA).sort((a,b) => b.length - a.length);
+      for (const k of keys) {
+        if (k === 'n') continue;
+        str = str.split(k).join(ROMAJI_TO_KANA[k]);
+      }
+      str = str.replace(/nn/g, 'ん');
+      return str;
+    }
+
+    const STORAGE_KEY_TEST = "hiragana_stats_test_v1";
+    const STORAGE_KEY_PRACTICE = "hiragana_stats_practice_v1";
+    const STORAGE_KEY_TIMES = "hiragana_test_times_v1";
+
+    let testStats = JSON.parse(localStorage.getItem(STORAGE_KEY_TEST)) || {};
+    let practiceStats = JSON.parse(localStorage.getItem(STORAGE_KEY_PRACTICE)) || {};
+    let testTimeRecords = JSON.parse(localStorage.getItem(STORAGE_KEY_TIMES)) || [];
+
+    function saveStats() {
+      localStorage.setItem(STORAGE_KEY_TEST, JSON.stringify(testStats));
+      localStorage.setItem(STORAGE_KEY_PRACTICE, JSON.stringify(practiceStats));
+      localStorage.setItem(STORAGE_KEY_TIMES, JSON.stringify(testTimeRecords));
+    }
+
+    let audioCtx = null;
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playPleasantDing() {
+      try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+        
+        const osc1 = ctx.createOscillator();
+        const gain1 = ctx.createGain();
+        osc1.type = "sine";
+        osc1.frequency.setValueAtTime(783.99, now);
+        gain1.gain.setValueAtTime(0.18, now);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+        osc1.connect(gain1);
+        gain1.connect(ctx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.55);
+
+        const osc2 = ctx.createOscillator();
+        const gain2 = ctx.createGain();
+        osc2.type = "sine";
+        osc2.frequency.setValueAtTime(1046.50, now + 0.08);
+        gain2.gain.setValueAtTime(0.22, now + 0.08);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.85);
+        osc2.connect(gain2);
+        gain2.connect(ctx.destination);
+        osc2.start(now + 0.08);
+        osc2.stop(now + 0.85);
+      } catch (err) {
+        console.warn("Audio synthesizer error", err);
+      }
+    }
+
+    function playErrorBuzzer() {
+      try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.exponentialRampToValueAtTime(110, now + 0.28);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.3);
+      } catch (err) {
+        console.warn("Audio synthesizer error", err);
+      }
+    }
+
+    let availableJapaneseVoices = [];
+    let selectedVoiceURI = localStorage.getItem('hiragana_voice_uri') || "";
+    let appVoiceSpeed = parseFloat(localStorage.getItem('hiragana_voice_speed')) || 0.7;
+    let isMikuVoice = localStorage.getItem('hiragana_voice_miku') === 'true';
+
+    function populateVoices() {
+      if (!('speechSynthesis' in window)) return;
+      const allVoices = window.speechSynthesis.getVoices();
+      availableJapaneseVoices = allVoices.filter(v => v.lang.includes('ja') || v.lang.includes('JP'));
+
+      const voiceSelect = document.getElementById('voice-picker-select');
+      if (!voiceSelect) return;
+      voiceSelect.innerHTML = "";
+
+      if (availableJapaneseVoices.length === 0) {
+        const opt = document.createElement('option');
+        opt.value = "";
+        opt.textContent = "Default Browser Japanese Engine";
+        voiceSelect.appendChild(opt);
+        return;
+      }
+
+      // Check if previously saved voice exists in the available voices
+      const matchingVoice = availableJapaneseVoices.find(v => v.voiceURI === selectedVoiceURI);
+      if (!matchingVoice) {
+        // If not found or initial run, auto-select the best natural voice and persist it
+        const bestVoice = availableJapaneseVoices.find(v => /natural|neural|google|premium|enhanced/i.test(v.name)) || availableJapaneseVoices[0];
+        if (bestVoice) {
+          selectedVoiceURI = bestVoice.voiceURI;
+          localStorage.setItem('hiragana_voice_uri', selectedVoiceURI);
+        }
+      }
+
+      availableJapaneseVoices.forEach(voice => {
+        const opt = document.createElement('option');
+        opt.value = voice.voiceURI;
+        const isNatural = /natural|online|enhanced|neural|google|premium/i.test(voice.name);
+        opt.textContent = `${isNatural ? '✨ ' : ''}${voice.name} (${voice.lang})`;
+        if (voice.voiceURI === selectedVoiceURI) opt.selected = true;
+        voiceSelect.appendChild(opt);
+      });
+
+      voiceSelect.value = selectedVoiceURI;
+    }
+
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = populateVoices;
+      populateVoices();
+    }
+
+    function speakKana(kanaText, customSpeed = null) {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+
+      const utterance = new SpeechSynthesisUtterance(kanaText);
+      utterance.lang = 'ja-JP';
+
+      if (isMikuVoice) {
+        // 1.23 pitch provides a bright anime/Miku lilt without phase jitter or distortion
+        utterance.pitch = 1.23;
+        // Keep delivery crisp and natural
+        utterance.rate = customSpeed !== null ? customSpeed : Math.min(appVoiceSpeed * 1.04, 1.15);
+      } else {
+        utterance.pitch = 1.0;
+        utterance.rate = customSpeed !== null ? customSpeed : appVoiceSpeed;
+      }
+
+      if (availableJapaneseVoices.length > 0) {
+        let voice = null;
+        if (isMikuVoice) {
+          // Prioritize high-definition neural voices over legacy 16kHz desktop engines
+          voice = availableJapaneseVoices.find(v => /nanami.*natural|nanami.*online/i.test(v.name)) ||
+                  availableJapaneseVoices.find(v => /google.*日本語|google.*japanese/i.test(v.name)) ||
+                  availableJapaneseVoices.find(v => /kyoko.*enhanced|kyoko/i.test(v.name)) ||
+                  availableJapaneseVoices.find(v => /nanami|ayumi|mayu|sayaka/i.test(v.name)) ||
+                  availableJapaneseVoices.find(v => !/desktop|haruka/i.test(v.name) && /natural|online|enhanced|neural/i.test(v.name)) ||
+                  availableJapaneseVoices.find(v => v.voiceURI === selectedVoiceURI) ||
+                  availableJapaneseVoices[0];
+        } else {
+          voice = availableJapaneseVoices.find(v => v.voiceURI === selectedVoiceURI) ||
+                  availableJapaneseVoices.find(v => /natural|neural|google/i.test(v.name)) ||
+                  availableJapaneseVoices[0];
+        }
+        if (voice) utterance.voice = voice;
+      }
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function formatDuration(ms) {
+      const totalSec = Math.floor(ms / 1000);
+      const mins = Math.floor(totalSec / 60);
+      const secs = totalSec % 60;
+      const tenths = Math.floor((ms % 1000) / 100);
+      if (mins > 0) {
+        return `${mins}m ${secs.toString().padStart(2, '0')}.${tenths}s`;
+      }
+      return `${secs}.${tenths}s`;
+    }
+
+    function formatClockDigits(ms) {
+      const totalSec = Math.floor(ms / 1000);
+      const mins = Math.floor(totalSec / 60);
+      const secs = totalSec % 60;
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    let currentSetKey = "set1";
+    let currentSessionMode = "practice";
+    let isUnlimitedPractice = false;
+    let isPracticeWeakestOnly = false;
+    let isAutoNext = localStorage.getItem('hiragana_auto_next_enabled') !== null
+      ? (localStorage.getItem('hiragana_auto_next_enabled') === 'true')
+      : true;
+    let autoNextDelay = parseFloat(localStorage.getItem('hiragana_auto_next_delay')) || 1.8;
+    let isFlashcardAnimEnabled = localStorage.getItem('hiragana_fc_anim_enabled') !== null
+      ? (localStorage.getItem('hiragana_fc_anim_enabled') === 'true')
+      : true;
+    let promptDirection = "romaji_front";
+    let currentActivity = "none";
+    let activeDeck = [];
+    let currentIndex = 0;
+    let sessionHistory = [];
+    let autoNextTimeout = null;
+
+    let testStartTime = null;
+    let testTimerInterval = null;
+    let activeSessionCompletedNaturally = false;
+
+    function startTestTimer() {
+      stopTestTimer(false);
+      if (currentSessionMode !== "test") return;
+
+      testStartTime = Date.now();
+      activeSessionCompletedNaturally = false;
+      const timerDisplay = document.getElementById('nav-timer-display');
+      const navTestTimer = document.getElementById('nav-test-timer');
+      if (timerDisplay) timerDisplay.textContent = "00:00";
+      if (navTestTimer) navTestTimer.classList.remove('hidden');
+
+      testTimerInterval = setInterval(() => {
+        if (!testStartTime) return;
+        const elapsed = Date.now() - testStartTime;
+        if (timerDisplay) timerDisplay.textContent = formatClockDigits(elapsed);
+      }, 250);
+    }
+
+    function stopTestTimer(isCompletedFullSet) {
+      if (testTimerInterval) {
+        clearInterval(testTimerInterval);
+        testTimerInterval = null;
+      }
+
+      const navTestTimer = document.getElementById('nav-test-timer');
+      if (navTestTimer) navTestTimer.classList.add('hidden');
+
+      let elapsedMs = null;
+      if (testStartTime && isCompletedFullSet) {
+        elapsedMs = Date.now() - testStartTime;
+      }
+
+      testStartTime = null;
+      return elapsedMs;
+    }
+
+    const viewMenu = document.getElementById('view-menu');
+    const viewFlashcards = document.getElementById('view-flashcards');
+    const viewMcq = document.getElementById('view-mcq');
+    const viewShort = document.getElementById('view-short');
+    const viewListening = document.getElementById('view-listening');
+    const viewResults = document.getElementById('view-results');
+    const viewStats = document.getElementById('view-stats');
+
+    const navHomeBtn = document.getElementById('nav-home-btn');
+    const navMenuBtn = document.getElementById('nav-menu-btn');
+    const navStatsBtn = document.getElementById('nav-stats-btn');
+    const navVoiceBtn = document.getElementById('nav-voice-btn');
+    const navBackBtn = document.getElementById('nav-back-btn');
+    const navEndSessionBtn = document.getElementById('nav-end-session-btn');
+    const navDirControl = document.getElementById('nav-dir-control');
+    const navDirHiraganaBtn = document.getElementById('nav-dir-hiragana-btn');
+    const navDirRomajiBtn = document.getElementById('nav-dir-romaji-btn');
+    const navDirSwapBtn = document.getElementById('nav-dir-swap-btn');
+    const navAutoNextControl = document.getElementById('nav-auto-next-control');
+    const navAutoNextToggle = document.getElementById('nav-auto-next-toggle');
+    const navAutoNextDelay = document.getElementById('nav-auto-next-delay');
+    const currentDeckBadge = document.getElementById('current-deck-badge');
+
+    const setCard1 = document.getElementById('set-card-1');
+    const setCard2 = document.getElementById('set-card-2');
+    const setCardBoth = document.getElementById('set-card-both');
+    const modePracticeBtn = document.getElementById('mode-practice-btn');
+    const modeTestBtn = document.getElementById('mode-test-btn');
+    const modeDesc = document.getElementById('mode-desc');
+    const practiceOptionsContainer = document.getElementById('practice-options-container');
+    const unlimitedPracticeToggle = document.getElementById('unlimited-practice-toggle');
+    const weakestPracticeToggle = document.getElementById('weakest-practice-toggle');
+    const weakestPracticeContainer = document.getElementById('weakest-practice-container');
+    const weakestCountBadge = document.getElementById('weakest-count-badge');
+    const weakestModeRestrictionTag = document.getElementById('weakest-mode-restriction-tag');
+    const weakestDescText = document.getElementById('weakest-desc-text');
+
+    const startFlashcardsBtn = document.getElementById('start-flashcards-btn');
+    const startMcqBtn = document.getElementById('start-mcq-btn');
+    const startShortBtn = document.getElementById('start-short-btn');
+    const startListeningBtn = document.getElementById('start-listening-btn');
+
+    const fcProgressPill = document.getElementById('fc-progress-pill');
+    const fcModeIndicator = document.getElementById('fc-mode-indicator');
+    const fcAnimToggle = document.getElementById('fc-anim-toggle');
+    const flashcardInner = document.getElementById('flashcard-inner');
+    const fcFrontLabel = document.getElementById('fc-front-label');
+    const fcFrontText = document.getElementById('fc-front-text');
+    const fcFrontSub = document.getElementById('fc-front-sub');
+    const fcBackLabel = document.getElementById('fc-back-label');
+    const fcBackText = document.getElementById('fc-back-text');
+    const fcBackReading = document.getElementById('fc-back-reading');
+    const fcBackHint = document.getElementById('fc-back-hint');
+    const fcAudioBtn = document.getElementById('fc-audio-btn');
+    const fcCorrectBtn = document.getElementById('fc-correct-btn');
+    const fcIncorrectBtn = document.getElementById('fc-incorrect-btn');
+    const fcBackBtn = document.getElementById('fc-back-btn');
+
+    const mcqProgressPill = document.getElementById('mcq-progress-pill');
+    const mcqAutoNextToggle = document.getElementById('mcq-auto-next-toggle');
+    const mcqAutoNextDelay = document.getElementById('mcq-auto-next-delay');
+    const mcqPromptSub = document.getElementById('mcq-prompt-sub');
+    const mcqPromptText = document.getElementById('mcq-prompt-text');
+    const mcqFeedbackText = document.getElementById('mcq-feedback-text');
+    const mcqOptionsGrid = document.getElementById('mcq-options-grid');
+    const mcqNextBtn = document.getElementById('mcq-next-btn');
+    const mcqBackBtn = document.getElementById('mcq-back-btn');
+
+    const shortProgressPill = document.getElementById('short-progress-pill');
+    const shortAutoNextToggle = document.getElementById('short-auto-next-toggle');
+    const shortAutoNextDelay = document.getElementById('short-auto-next-delay');
+    const shortPromptKana = document.getElementById('short-prompt-kana');
+    const shortForm = document.getElementById('short-form');
+    const shortInput = document.getElementById('short-input');
+    const shortSubmitBtn = document.getElementById('short-submit-btn');
+    const shortFeedbackBox = document.getElementById('short-feedback-box');
+    const shortFeedbackTitle = document.getElementById('short-feedback-title');
+    const shortFeedbackDetail = document.getElementById('short-feedback-detail');
+    const shortNextBtn = document.getElementById('short-next-btn');
+    const shortBackBtn = document.getElementById('short-back-btn');
+
+    const listenProgressPill = document.getElementById('listen-progress-pill');
+    const listenAutoNextToggle = document.getElementById('listen-auto-next-toggle');
+    const listenAutoNextDelay = document.getElementById('listen-auto-next-delay');
+    const listenSpeakerCard = document.getElementById('listen-speaker-card');
+    const listenForm = document.getElementById('listen-form');
+    const listenInput = document.getElementById('listen-input');
+    const listenSubmitBtn = document.getElementById('listen-submit-btn');
+    const listenFeedbackBox = document.getElementById('listen-feedback-box');
+    const listenFeedbackTitle = document.getElementById('listen-feedback-title');
+    const listenFeedbackDetail = document.getElementById('listen-feedback-detail');
+    const listenNextBtn = document.getElementById('listen-next-btn');
+    const listenBackBtn = document.getElementById('listen-back-btn');
+
+    const breakthroughBanner = document.getElementById('breakthrough-banner');
+    const breakthroughText = document.getElementById('breakthrough-text');
+    const breakthroughDetail = document.getElementById('breakthrough-detail');
+    const breakthroughKanaChips = document.getElementById('breakthrough-kana-chips');
+    const resAccuracy = document.getElementById('res-accuracy');
+    const resTimeTaken = document.getElementById('res-time-taken');
+    const resCorrect = document.getElementById('res-correct');
+    const resWrong = document.getElementById('res-wrong');
+    const resComparison = document.getElementById('res-comparison');
+    const resTimeComparisonCard = document.getElementById('res-time-comparison-card');
+    const resTimeModeBadge = document.getElementById('res-time-mode-badge');
+    const resAllTimeTimeComp = document.getElementById('res-all-time-time-comp');
+    const resRunning8TimeComp = document.getElementById('res-running-8-time-comp');
+    const resMissedContainer = document.getElementById('res-missed-container');
+    const resMissedList = document.getElementById('res-missed-list');
+    const resRetryBtn = document.getElementById('res-retry-btn');
+    const resMenuBtn = document.getElementById('res-menu-btn');
+
+    const statsCloseBtn = document.getElementById('stats-close-btn');
+    const statsDatasetSelect = document.getElementById('stats-dataset-select');
+    const statsModeSelect = document.getElementById('stats-mode-select');
+    const statsDirSelect = document.getElementById('stats-dir-select');
+    const statsSearchInput = document.getElementById('stats-search-input');
+    const statsTableBody = document.getElementById('stats-table-body');
+    const statsResetBtn = document.getElementById('stats-reset-btn');
+    const resetConfirmModal = document.getElementById('reset-confirm-modal');
+    const resetCancelBtn = document.getElementById('reset-cancel-btn');
+    const resetConfirmBtn = document.getElementById('reset-confirm-btn');
+    const statsTimeSetSelect = document.getElementById('stats-time-set-select');
+    const statsTimeGrid = document.getElementById('stats-time-grid');
+
+    const challengeExitModal = document.getElementById('challenge-exit-modal');
+    const challengeStayBtn = document.getElementById('challenge-stay-btn');
+    const challengeLeaveBtn = document.getElementById('challenge-leave-btn');
+    let pendingExitAction = null;
+
+    function isChallengeActive() {
+      const activeViews = ['view-flashcards', 'view-mcq', 'view-short', 'view-listening'];
+      const inActivity = activeViews.some(id => {
+        const el = document.getElementById(id);
+        return el && !el.classList.contains('hidden');
+      });
+      return currentSessionMode === 'test' && inActivity && !activeSessionCompletedNaturally;
+    }
+
+    function requestChallengeExit(onConfirm) {
+      if (isChallengeActive()) {
+        pendingExitAction = onConfirm;
+        if (challengeExitModal) challengeExitModal.classList.remove('hidden');
+      } else {
+        onConfirm();
+      }
+    }
+
+    const voiceModal = document.getElementById('voice-modal');
+    const voiceModalClose = document.getElementById('voice-modal-close');
+    const voicePickerSelect = document.getElementById('voice-picker-select');
+    const voiceSpeedVal = document.getElementById('voice-speed-val');
+    const voiceSpeedSlider = document.getElementById('voice-speed-slider');
+    const voiceTestBtn = document.getElementById('voice-test-btn');
+    const voiceSaveBtn = document.getElementById('voice-save-btn');
+    const voiceMikuToggle = document.getElementById('voice-miku-toggle');
+
+    function getCombinedKanaStats(kanaChar) {
+      let correct = 0;
+      let incorrect = 0;
+
+      const t = testStats[kanaChar];
+      if (t) {
+        correct += (t.correct || 0);
+        incorrect += (t.incorrect || 0);
+      }
+      const p = practiceStats[kanaChar];
+      if (p) {
+        correct += (p.correct || 0);
+        incorrect += (p.incorrect || 0);
+      }
+
+      const total = correct + incorrect;
+      const pct = total > 0 ? (correct / total) * 100 : null;
+      return { correct, incorrect, total, pct };
+    }
+
+    function recordCharacterResult(card, isCorrect) {
+      const activeStorage = currentSessionMode === "practice" ? practiceStats : testStats;
+      const kana = card.kana;
+
+      if (!activeStorage[kana]) {
+        activeStorage[kana] = {
+          correct: 0,
+          incorrect: 0,
+          byMode: {},
+          byDirection: {}
+        };
+      }
+
+      const entry = activeStorage[kana];
+      if (isCorrect) entry.correct++;
+      else entry.incorrect++;
+
+      if (!entry.byMode[currentActivity]) entry.byMode[currentActivity] = { correct: 0, incorrect: 0 };
+      if (isCorrect) entry.byMode[currentActivity].correct++;
+      else entry.byMode[currentActivity].incorrect++;
+
+      const dirKey = (currentActivity === 'short' || currentActivity === 'listening') ? 'hiragana_front' : promptDirection;
+      if (!entry.byDirection[dirKey]) entry.byDirection[dirKey] = { correct: 0, incorrect: 0 };
+      if (isCorrect) entry.byDirection[dirKey].correct++;
+      else entry.byDirection[dirKey].incorrect++;
+
+      saveStats();
+
+      sessionHistory.push({
+        card: card,
+        isCorrect: isCorrect,
+        activity: currentActivity
+      });
+    }
+
+    function reinsertIncorrectQuestion(card) {
+      if (currentSessionMode !== "practice") return;
+
+      const remainingQuestions = activeDeck.length - (currentIndex + 1);
+
+      if (remainingQuestions < 10) {
+        activeDeck.push({ ...card });
+      } else {
+        const minIndex = currentIndex + 10;
+        const maxIndex = activeDeck.length;
+        const targetIndex = Math.floor(Math.random() * (maxIndex - minIndex + 1)) + minIndex;
+        activeDeck.splice(targetIndex, 0, { ...card });
+      }
+
+      if (isUnlimitedPractice && (activeDeck.length - currentIndex) < 15) {
+        const baseSet = getRawSelectedDeck();
+        const filler = [...baseSet].sort(() => Math.random() - 0.5).slice(0, 10);
+        filler.forEach(c => activeDeck.push({ ...c }));
+      }
+    }
+
+    function showView(viewId) {
+      if (autoNextTimeout) {
+        clearTimeout(autoNextTimeout);
+        autoNextTimeout = null;
+      }
+
+      const isActivityView = (viewId === 'view-flashcards' || viewId === 'view-mcq' || viewId === 'view-short' || viewId === 'view-listening');
+      if (!isActivityView && viewId !== 'view-results') {
+        if (currentSessionMode === 'test' && !activeSessionCompletedNaturally) {
+          stopTestTimer(false);
+        }
+      }
+
+      const views = [
+        document.getElementById('view-menu'),
+        document.getElementById('view-flashcards'),
+        document.getElementById('view-mcq'),
+        document.getElementById('view-short'),
+        document.getElementById('view-listening'),
+        document.getElementById('view-results'),
+        document.getElementById('view-stats')
+      ];
+
+      views.forEach(v => {
+        if (v && v.classList) {
+          v.classList.add('hidden');
+        }
+      });
+
+      const target = document.getElementById(viewId);
+      if (target) target.classList.remove('hidden');
+
+      if (viewId === 'view-menu' || viewId === 'view-stats' || viewId === 'view-results') {
+        if (navEndSessionBtn) navEndSessionBtn.classList.add('hidden');
+        if (navBackBtn) navBackBtn.classList.add('hidden');
+        if (navDirControl) navDirControl.classList.remove('hidden');
+        if (navAutoNextControl) navAutoNextControl.classList.remove('hidden');
+      } else {
+        if (navAutoNextControl) navAutoNextControl.classList.add('hidden');
+        if (currentSessionMode === 'practice') {
+          if (navEndSessionBtn) navEndSessionBtn.classList.remove('hidden');
+          updateBackBtnState();
+        } else {
+          if (navEndSessionBtn) navEndSessionBtn.classList.add('hidden');
+          if (navBackBtn) navBackBtn.classList.add('hidden');
+        }
+
+        if (viewId === 'view-short' || viewId === 'view-listening') {
+          if (navDirControl) navDirControl.classList.add('hidden');
+        } else {
+          if (navDirControl) navDirControl.classList.remove('hidden');
+        }
+      }
+
+      // Lock direction toggling during active challenge runs
+      if (navDirControl) {
+        if (currentSessionMode === 'test' && isActivityView) {
+          navDirControl.classList.add('opacity-40', 'pointer-events-none', 'cursor-not-allowed');
+          navDirControl.title = "Prompt direction cannot be changed during a Challenge run";
+        } else {
+          navDirControl.classList.remove('opacity-40', 'pointer-events-none', 'cursor-not-allowed');
+          navDirControl.title = "Select question prompt language (Hiragana / Romaji)";
+        }
+      }
+
+      updateTopBadge();
+    }
+
+    function getRawSelectedDeck() {
+      if (currentSetKey === "set1") return [...HIRAGANA_SET_1];
+      if (currentSetKey === "set2") return [...HIRAGANA_SET_2];
+      return [...HIRAGANA_SET_1, ...HIRAGANA_SET_2];
+    }
+
+    function updateTopBadge() {
+      let setName = "Set 1: A to Ho (30)";
+      if (currentSetKey === "set2") setName = "Set 2: Ma to Po (41)";
+      if (currentSetKey === "both") setName = "Combined (71 Kana)";
+
+      const modeName = currentSessionMode === "practice" ? "Practice" : "Challenge";
+      const weakName = isPracticeWeakestOnly ? " • Weakest Only" : "";
+      currentDeckBadge.textContent = `${setName} • ${modeName}${weakName}`;
+      updateDirectionUI();
+    }
+
+    function updateDirectionUI() {
+      if (!navDirHiraganaBtn || !navDirRomajiBtn) return;
+      const isRomaji = (promptDirection === "romaji_front");
+      if (isRomaji) {
+        navDirRomajiBtn.className = "px-2.5 py-1 rounded-lg transition text-xs font-bold bg-rose-600 text-white shadow-sm";
+        navDirHiraganaBtn.className = "px-2.5 py-1 rounded-lg transition font-japanese text-xs font-bold text-slate-400 hover:text-white";
+      } else {
+        navDirHiraganaBtn.className = "px-2.5 py-1 rounded-lg transition font-japanese text-xs font-bold bg-rose-600 text-white shadow-sm";
+        navDirRomajiBtn.className = "px-2.5 py-1 rounded-lg transition text-xs font-bold text-slate-400 hover:text-white";
+      }
+    }
+
+    function setPromptDirection(newDir) {
+      const isActivityActive = !viewFlashcards.classList.contains('hidden') || !viewMcq.classList.contains('hidden');
+      if (currentSessionMode === "test" && isActivityActive) {
+        return; // Guard against direction changes during active challenge runs
+      }
+      promptDirection = newDir;
+      updateDirectionUI();
+      if (currentActivity === "flashcards") renderFlashcard();
+      if (currentActivity === "mcq") renderMcqQuestion();
+    }
+
+    function updateSetHighlight() {
+      [setCard1, setCard2, setCardBoth].forEach(card => {
+        card.className = "relative flex flex-col p-4 rounded-2xl border-2 border-slate-800 bg-slate-900/60 cursor-pointer transition hover:border-slate-700 shadow-sm";
+      });
+
+      if (currentSetKey === "set1") {
+        setCard1.className = "relative flex flex-col p-4 rounded-2xl border-2 border-rose-500 bg-rose-950/30 cursor-pointer transition hover:border-rose-400 shadow-sm";
+      } else if (currentSetKey === "set2") {
+        setCard2.className = "relative flex flex-col p-4 rounded-2xl border-2 border-rose-500 bg-rose-950/30 cursor-pointer transition hover:border-rose-400 shadow-sm";
+      } else {
+        setCardBoth.className = "relative flex flex-col p-4 rounded-2xl border-2 border-rose-500 bg-rose-950/30 cursor-pointer transition hover:border-rose-400 shadow-sm";
+      }
+      updateWeakestCount();
+    }
+
+    function updateWeakestCount() {
+      const base = getRawSelectedDeck();
+      let qualifyingCount = 0;
+
+      base.forEach(card => {
+        const stats = getCombinedKanaStats(card.kana);
+        if (stats.pct !== null && stats.pct <= 90) {
+          qualifyingCount++;
+        }
+      });
+
+      weakestCountBadge.textContent = `${qualifyingCount} eligible`;
+
+      if (qualifyingCount === 0 && isPracticeWeakestOnly) {
+        weakestCountBadge.className = "text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700";
+      } else {
+        weakestCountBadge.className = "text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30";
+      }
+    }
+
+    function setSessionMode(mode) {
+      currentSessionMode = mode;
+      if (mode === "practice") {
+        modePracticeBtn.className = "px-4 py-1.5 text-xs font-bold rounded-lg bg-rose-600 text-white shadow transition";
+        modeTestBtn.className = "px-4 py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition";
+        modeDesc.textContent = "Practice Mode: missed questions are reshuffled back until mastered. Historical stats tracked separately.";
+        practiceOptionsContainer.classList.remove('opacity-50', 'pointer-events-none');
+        weakestPracticeToggle.disabled = false;
+        weakestModeRestrictionTag.classList.add('hidden');
+      } else {
+        modeTestBtn.className = "px-4 py-1.5 text-xs font-bold rounded-lg bg-rose-600 text-white shadow transition";
+        modePracticeBtn.className = "px-4 py-1.5 text-xs font-bold rounded-lg text-slate-400 hover:text-white transition";
+        modeDesc.textContent = "Challenge: fixed single run through set. Logs to official All-Time Historical stats and records your completion time upon full finish.";
+        
+        isPracticeWeakestOnly = false;
+        weakestPracticeToggle.checked = false;
+        weakestPracticeToggle.disabled = true;
+        isUnlimitedPractice = false;
+        unlimitedPracticeToggle.checked = false;
+        practiceOptionsContainer.classList.add('opacity-50', 'pointer-events-none');
+        weakestModeRestrictionTag.classList.remove('hidden');
+      }
+      updateTopBadge();
+    }
+
+    function prepareActiveDeck() {
+      let raw = getRawSelectedDeck();
+
+      if (currentSessionMode === "practice" && isPracticeWeakestOnly) {
+        const weakest = raw.filter(card => {
+          const s = getCombinedKanaStats(card.kana);
+          return s.pct !== null && s.pct <= 90;
+        });
+
+        if (weakest.length > 0) {
+          raw = weakest;
+        }
+      }
+
+      activeDeck = [...raw].sort(() => Math.random() - 0.5);
+      currentIndex = 0;
+      sessionHistory = [];
+      activeSessionCompletedNaturally = false;
+
+      if (currentSessionMode === "test") {
+        startTestTimer();
+      }
+    }
+
+    function startFlashcards() {
+      currentActivity = "flashcards";
+      prepareActiveDeck();
+      fcModeIndicator.textContent = currentSessionMode === "practice" ? "Practice Mode" : "Challenge Mode";
+      showView('view-flashcards');
+      renderFlashcard();
+    }
+
+    function startMcq() {
+      currentActivity = "mcq";
+      prepareActiveDeck();
+      showView('view-mcq');
+      renderMcqQuestion();
+    }
+
+    function startShortAnswer() {
+      currentActivity = "short";
+      prepareActiveDeck();
+      showView('view-short');
+      renderShortQuestion();
+    }
+
+    function startListening() {
+      currentActivity = "listening";
+      prepareActiveDeck();
+      showView('view-listening');
+      renderListeningQuestion();
+    }
+
+    let isFlipped = false;
+
+    function renderFlashcard() {
+      if (currentIndex >= activeDeck.length) {
+        finishSession();
+        return;
+      }
+
+      const card = activeDeck[currentIndex];
+      
+      // Instantly reset card rotation to front without animating so the next card's answer is not revealed
+      flashcardInner.style.transition = 'none';
+      flashcardInner.classList.remove('rotate-y-180');
+      isFlipped = false;
+      void flashcardInner.offsetHeight;
+      requestAnimationFrame(() => {
+        flashcardInner.style.transition = isFlashcardAnimEnabled ? '' : 'none';
+      });
+
+      fcProgressPill.textContent = `Card ${currentIndex + 1} of ${isUnlimitedPractice ? '∞' : activeDeck.length}`;
+
+      if (promptDirection === "romaji_front") {
+        fcFrontLabel.textContent = "Romaji Prompt";
+        fcFrontText.textContent = card.romaji;
+        fcFrontText.className = "text-6xl sm:text-7xl font-black text-white tracking-tight";
+        fcBackLabel.textContent = "Hiragana Character";
+        fcBackText.textContent = card.kana;
+        fcBackReading.innerHTML = `Reading: <span class="font-mono text-rose-300 font-bold">${card.romaji}</span>`;
+      } else {
+        fcFrontLabel.textContent = "Hiragana Prompt";
+        fcFrontText.textContent = card.kana;
+        fcFrontText.className = "text-7xl sm:text-8xl font-black text-rose-400 font-japanese";
+        fcBackLabel.textContent = "Romaji Reading";
+        fcBackText.textContent = card.romaji;
+        fcBackReading.innerHTML = `Kana: <span class="font-japanese text-rose-300 font-bold">${card.kana}</span>`;
+      }
+
+      fcBackHint.textContent = card.hint;
+      updateBackBtnState();
+    }
+
+    function setFlashcardAnimation(enabled) {
+      isFlashcardAnimEnabled = enabled;
+      localStorage.setItem('hiragana_fc_anim_enabled', enabled.toString());
+      if (fcAnimToggle) fcAnimToggle.checked = enabled;
+      if (flashcardInner) {
+        flashcardInner.style.transition = enabled ? '' : 'none';
+      }
+    }
+
+    function flipCard() {
+      isFlipped = !isFlipped;
+      if (!isFlashcardAnimEnabled) {
+        flashcardInner.style.transition = 'none';
+      } else {
+        flashcardInner.style.transition = '';
+      }
+      if (isFlipped) {
+        flashcardInner.classList.add('rotate-y-180');
+      } else {
+        flashcardInner.classList.remove('rotate-y-180');
+      }
+    }
+
+    flashcardInner.addEventListener('click', flipCard);
+
+    fcAudioBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (activeDeck[currentIndex]) {
+        speakKana(activeDeck[currentIndex].kana);
+      }
+    });
+
+    fcCorrectBtn.addEventListener('click', () => {
+      const card = activeDeck[currentIndex];
+      playPleasantDing();
+      recordCharacterResult(card, true);
+      currentIndex++;
+      renderFlashcard();
+    });
+
+    fcIncorrectBtn.addEventListener('click', () => {
+      const card = activeDeck[currentIndex];
+      playErrorBuzzer();
+      recordCharacterResult(card, false);
+      reinsertIncorrectQuestion(card);
+      currentIndex++;
+      renderFlashcard();
+    });
+
+    function renderMcqQuestion() {
+      if (currentIndex >= activeDeck.length) {
+        finishSession();
+        return;
+      }
+
+      const card = activeDeck[currentIndex];
+      mcqProgressPill.textContent = `Question ${currentIndex + 1} of ${isUnlimitedPractice ? '∞' : activeDeck.length}`;
+      mcqFeedbackText.textContent = "";
+      mcqNextBtn.classList.add('hidden');
+
+      const isRomajiPrompt = (promptDirection === "romaji_front");
+
+      if (isRomajiPrompt) {
+        mcqPromptSub.textContent = "Select the corresponding Hiragana";
+        mcqPromptText.textContent = card.romaji;
+        mcqPromptText.className = "text-6xl sm:text-7xl font-black text-white my-4";
+      } else {
+        mcqPromptSub.textContent = "Select the corresponding Romaji";
+        mcqPromptText.textContent = card.kana;
+        mcqPromptText.className = "text-6xl sm:text-7xl font-black text-rose-400 my-4 font-japanese";
+      }
+
+      const currentSetPool = getRawSelectedDeck();
+      let candidatePool = currentSetPool.filter(c => c.kana !== card.kana);
+      if (candidatePool.length < 3) {
+        const allPool = [...HIRAGANA_SET_1, ...HIRAGANA_SET_2];
+        candidatePool = allPool.filter(c => c.kana !== card.kana);
+      }
+
+      const distractors = candidatePool
+                                 .sort(() => Math.random() - 0.5)
+                                 .slice(0, 3);
+      const options = [card, ...distractors].sort(() => Math.random() - 0.5);
+
+      mcqOptionsGrid.innerHTML = "";
+      options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.type = "button";
+        const label = isRomajiPrompt ? opt.kana : opt.romaji;
+        const fontClass = isRomajiPrompt ? "font-japanese text-3xl" : "text-xl font-mono";
+
+        btn.className = `p-4 rounded-2xl bg-slate-800/80 hover:bg-slate-700/80 border-2 border-slate-700/60 text-white font-extrabold ${fontClass} transition active:scale-95 shadow-sm`;
+        btn.textContent = label;
+
+        btn.addEventListener('click', () => handleMcqSelection(opt, card, btn));
+        mcqOptionsGrid.appendChild(btn);
+      });
+      updateBackBtnState();
+    }
+
+    function handleMcqSelection(selectedCard, correctCard, clickedBtn) {
+      const buttons = mcqOptionsGrid.querySelectorAll('button');
+      buttons.forEach(b => b.disabled = true);
+
+      const isCorrect = (selectedCard.kana === correctCard.kana);
+      recordCharacterResult(correctCard, isCorrect);
+
+      if (isCorrect) {
+        playPleasantDing();
+        clickedBtn.className = "p-4 rounded-2xl bg-emerald-950/70 border-2 border-emerald-500 text-emerald-200 font-extrabold text-2xl transition shadow-lg";
+        mcqFeedbackText.textContent = "Correct! 素晴らしい!";
+        mcqFeedbackText.className = "h-6 text-xs font-bold text-emerald-400";
+      } else {
+        playErrorBuzzer();
+        clickedBtn.className = "p-4 rounded-2xl bg-rose-950/70 border-2 border-rose-500 text-rose-200 font-extrabold text-2xl transition shadow-lg";
+        mcqFeedbackText.textContent = `Incorrect. Correct answer was: ${promptDirection === 'romaji_front' ? correctCard.kana : correctCard.romaji}`;
+        mcqFeedbackText.className = "h-6 text-xs font-bold text-rose-400";
+        reinsertIncorrectQuestion(correctCard);
+
+        buttons.forEach(b => {
+          const matchTarget = (promptDirection === 'romaji_front') ? correctCard.kana : correctCard.romaji;
+          if (b.textContent === matchTarget) {
+            b.className = "p-4 rounded-2xl bg-emerald-950/70 border-2 border-emerald-500 text-emerald-200 font-extrabold text-2xl transition";
+          }
+        });
+      }
+
+      handleAutoProgression(mcqNextBtn, () => {
+        currentIndex++;
+        renderMcqQuestion();
+      });
+    }
+
+    let isShortAnswerSubmitted = false;
+
+    function renderShortQuestion() {
+      if (currentIndex >= activeDeck.length) {
+        finishSession();
+        return;
+      }
+
+      const card = activeDeck[currentIndex];
+      isShortAnswerSubmitted = false;
+      shortProgressPill.textContent = `Question ${currentIndex + 1} of ${isUnlimitedPractice ? '∞' : activeDeck.length}`;
+      shortPromptKana.textContent = card.kana;
+      shortInput.value = "";
+      shortInput.disabled = false;
+      shortFeedbackBox.classList.add('hidden');
+      shortNextBtn.classList.add('hidden');
+
+      shortSubmitBtn.innerHTML = `<span>Submit Answer</span>`;
+      shortSubmitBtn.className = "w-full py-3 sm:py-3.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-sm transition shadow-lg shadow-rose-950/40 active:scale-95 flex items-center justify-center gap-2";
+
+      shortInput.focus();
+      updateBackBtnState();
+    }
+
+    shortForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      if (isShortAnswerSubmitted) {
+        if (autoNextTimeout) {
+          clearTimeout(autoNextTimeout);
+          autoNextTimeout = null;
+        }
+        currentIndex++;
+        renderShortQuestion();
+        return;
+      }
+
+      if (shortInput.disabled) return;
+
+      const card = activeDeck[currentIndex];
+      const userRaw = shortInput.value.trim().toLowerCase();
+      if (!userRaw) return;
+
+      shortInput.disabled = true;
+      isShortAnswerSubmitted = true;
+
+      const correctRomaji = card.romaji.toLowerCase();
+      let isCorrect = (userRaw === correctRomaji);
+
+      if (!isCorrect) {
+        if (correctRomaji === "shi" && userRaw === "si") isCorrect = true;
+        if (correctRomaji === "chi" && userRaw === "ti") isCorrect = true;
+        if (correctRomaji === "tsu" && userRaw === "tu") isCorrect = true;
+        if (correctRomaji === "fu" && userRaw === "hu") isCorrect = true;
+        if (correctRomaji === "ji" && (userRaw === "zi" || userRaw === "di")) isCorrect = true;
+        if (correctRomaji === "zu" && userRaw === "du") isCorrect = true;
+      }
+
+      recordCharacterResult(card, isCorrect);
+      shortFeedbackBox.classList.remove('hidden');
+
+      if (isCorrect) {
+        playPleasantDing();
+        shortFeedbackBox.className = "p-4 rounded-2xl border border-emerald-500/50 bg-emerald-950/40 text-center transition";
+        shortFeedbackTitle.textContent = "Correct! 正解!";
+        shortFeedbackTitle.className = "font-extrabold text-sm text-emerald-400";
+        shortFeedbackDetail.textContent = `Target: ${card.kana} = ${card.romaji}. ${card.hint}`;
+      } else {
+        playErrorBuzzer();
+        shortFeedbackBox.className = "p-4 rounded-2xl border border-rose-500/50 bg-rose-950/40 text-center transition";
+        shortFeedbackTitle.textContent = `Incorrect. You typed: "${userRaw}"`;
+        shortFeedbackTitle.className = "font-extrabold text-sm text-rose-400";
+        shortFeedbackDetail.textContent = `Correct reading: "${card.romaji}". ${card.hint}`;
+        reinsertIncorrectQuestion(card);
+      }
+
+      shortSubmitBtn.innerHTML = `<span>Next Question →</span>`;
+      shortSubmitBtn.className = "w-full py-3 sm:py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-extrabold text-sm transition shadow-lg border border-slate-700 active:scale-95 flex items-center justify-center gap-2";
+
+      handleAutoProgression(shortNextBtn, () => {
+        currentIndex++;
+        renderShortQuestion();
+      });
+    });
+
+    let isListeningSubmitted = false;
+
+    function renderListeningQuestion() {
+      if (currentIndex >= activeDeck.length) {
+        finishSession();
+        return;
+      }
+
+      const card = activeDeck[currentIndex];
+      isListeningSubmitted = false;
+      listenProgressPill.textContent = `Audio ${currentIndex + 1} of ${isUnlimitedPractice ? '∞' : activeDeck.length}`;
+      listenInput.value = "";
+      listenInput.disabled = false;
+      listenFeedbackBox.classList.add('hidden');
+      listenNextBtn.classList.add('hidden');
+
+      listenSubmitBtn.innerHTML = `<span>Submit Kana</span>`;
+      listenSubmitBtn.className = "w-full py-3 sm:py-3.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-sm transition shadow-lg shadow-rose-950/40 active:scale-95 flex items-center justify-center gap-2";
+
+      listenInput.focus();
+      speakKana(card.kana, appVoiceSpeed);
+      updateBackBtnState();
+    }
+
+    listenInput.addEventListener('input', (e) => {
+      const converted = convertRomajiToKana(e.target.value);
+      if (converted !== e.target.value) {
+        e.target.value = converted;
+      }
+    });
+
+    listenSpeakerCard.addEventListener('click', () => {
+      if (activeDeck[currentIndex]) {
+        speakKana(activeDeck[currentIndex].kana, appVoiceSpeed);
+      }
+    });
+
+    listenForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      if (isListeningSubmitted) {
+        if (autoNextTimeout) {
+          clearTimeout(autoNextTimeout);
+          autoNextTimeout = null;
+        }
+        currentIndex++;
+        renderListeningQuestion();
+        return;
+      }
+
+      if (listenInput.disabled) return;
+
+      const card = activeDeck[currentIndex];
+      const typed = listenInput.value.trim().toLowerCase();
+      if (!typed) return;
+
+      listenInput.disabled = true;
+      isListeningSubmitted = true;
+
+      const isCorrect = (typed === card.kana || typed === card.romaji.toLowerCase());
+      recordCharacterResult(card, isCorrect);
+      listenFeedbackBox.classList.remove('hidden');
+
+      if (isCorrect) {
+        playPleasantDing();
+        listenFeedbackBox.className = "p-4 rounded-2xl border border-emerald-500/50 bg-emerald-950/40 text-center transition";
+        listenFeedbackTitle.textContent = `Correct! ${card.kana} (${card.romaji})`;
+        listenFeedbackTitle.className = "font-extrabold text-sm text-emerald-400";
+        listenFeedbackDetail.textContent = card.hint;
+      } else {
+        playErrorBuzzer();
+        listenFeedbackBox.className = "p-4 rounded-2xl border border-rose-500/50 bg-rose-950/40 text-center transition";
+        listenFeedbackTitle.textContent = `Incorrect. Correct kana: ${card.kana} (${card.romaji})`;
+        listenFeedbackTitle.className = "font-extrabold text-sm text-rose-400";
+        listenFeedbackDetail.textContent = `You entered: "${typed}". ${card.hint}`;
+        reinsertIncorrectQuestion(card);
+      }
+
+      listenSubmitBtn.innerHTML = `
+        <span>Next Question</span>
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      `;
+      listenSubmitBtn.className = "w-full py-3 sm:py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-white font-extrabold text-sm transition shadow-lg border border-slate-700 active:scale-95 flex items-center justify-center gap-2";
+
+      handleAutoProgression(listenNextBtn, () => {
+        currentIndex++;
+        renderListeningQuestion();
+      });
+    });
+
+    function setVoiceSpeed(val) {
+      appVoiceSpeed = Math.round(parseFloat(val) * 100) / 100;
+      localStorage.setItem('hiragana_voice_speed', appVoiceSpeed.toString());
+
+      if (voiceSpeedSlider) voiceSpeedSlider.value = appVoiceSpeed;
+      if (voiceSpeedVal) voiceSpeedVal.textContent = `${appVoiceSpeed.toFixed(1)}x`;
+    }
+
+    function undoLastResult() {
+      if (sessionHistory.length === 0) return;
+      const lastEntry = sessionHistory.pop();
+      if (!lastEntry) return;
+
+      const activeStorage = currentSessionMode === "practice" ? practiceStats : testStats;
+      const kana = lastEntry.card.kana;
+      const isCorrect = lastEntry.isCorrect;
+      const act = lastEntry.activity;
+
+      if (activeStorage[kana]) {
+        const entry = activeStorage[kana];
+        if (isCorrect) {
+          if (entry.correct > 0) entry.correct--;
+        } else {
+          if (entry.incorrect > 0) entry.incorrect--;
+        }
+
+        if (entry.byMode && entry.byMode[act]) {
+          if (isCorrect) {
+            if (entry.byMode[act].correct > 0) entry.byMode[act].correct--;
+          } else {
+            if (entry.byMode[act].incorrect > 0) entry.byMode[act].incorrect--;
+          }
+        }
+
+        const dirKey = (act === 'short' || act === 'listening') ? 'hiragana_front' : promptDirection;
+        if (entry.byDirection && entry.byDirection[dirKey]) {
+          if (isCorrect) {
+            if (entry.byDirection[dirKey].correct > 0) entry.byDirection[dirKey].correct--;
+          } else {
+            if (entry.byDirection[dirKey].incorrect > 0) entry.byDirection[dirKey].incorrect--;
+          }
+        }
+      }
+
+      // If it was marked incorrect and reinserted into activeDeck, remove the reinserted instance
+      if (!isCorrect && currentSessionMode === "practice") {
+        for (let i = activeDeck.length - 1; i > currentIndex; i--) {
+          if (activeDeck[i].kana === lastEntry.card.kana) {
+            activeDeck.splice(i, 1);
+            break;
+          }
+        }
+      }
+
+      saveStats();
+    }
+
+    function renderCurrentActivity() {
+      if (currentActivity === "flashcards") {
+        renderFlashcard();
+      } else if (currentActivity === "mcq") {
+        renderMcqQuestion();
+      } else if (currentActivity === "short") {
+        renderShortQuestion();
+      } else if (currentActivity === "listening") {
+        renderListeningQuestion();
+      }
+    }
+
+    function updateBackBtnState() {
+      const isPractice = (currentSessionMode === "practice");
+      const isActivityView = (
+        !viewFlashcards.classList.contains('hidden') ||
+        !viewMcq.classList.contains('hidden') ||
+        !viewShort.classList.contains('hidden') ||
+        !viewListening.classList.contains('hidden')
+      );
+
+      const canGoBack = isPractice && isActivityView && (currentIndex > 0 || sessionHistory.length > currentIndex);
+
+      const backButtons = [navBackBtn, fcBackBtn, mcqBackBtn, shortBackBtn, listenBackBtn];
+      backButtons.forEach(btn => {
+        if (!btn) return;
+        if (!isPractice || !isActivityView) {
+          btn.classList.add('hidden');
+        } else {
+          btn.classList.remove('hidden');
+          btn.disabled = !canGoBack;
+          if (canGoBack) {
+            btn.classList.remove('opacity-30', 'pointer-events-none');
+          } else {
+            btn.classList.add('opacity-30', 'pointer-events-none');
+          }
+        }
+      });
+    }
+
+    function goBackToPreviousQuestion() {
+      if (currentSessionMode !== "practice") return;
+
+      if (autoNextTimeout) {
+        clearTimeout(autoNextTimeout);
+        autoNextTimeout = null;
+      }
+
+      // If the current question was already answered and feedback is being shown, undo it and reset current card
+      if (sessionHistory.length > currentIndex) {
+        undoLastResult();
+        renderCurrentActivity();
+        updateBackBtnState();
+        return;
+      }
+
+      // Otherwise step back to the previous question
+      if (currentIndex <= 0) return;
+      currentIndex--;
+      undoLastResult();
+      renderCurrentActivity();
+      updateBackBtnState();
+    }
+
+    function handleAutoProgression(nextBtn, nextCallback) {
+      if (autoNextTimeout) {
+        clearTimeout(autoNextTimeout);
+        autoNextTimeout = null;
+      }
+
+      if (isAutoNext) {
+        nextBtn.classList.remove('hidden');
+        autoNextTimeout = setTimeout(() => {
+          nextCallback();
+        }, autoNextDelay * 1000);
+      } else {
+        nextBtn.classList.remove('hidden');
+      }
+
+      nextBtn.onclick = () => {
+        if (autoNextTimeout) {
+          clearTimeout(autoNextTimeout);
+          autoNextTimeout = null;
+        }
+        nextCallback();
+      };
+    }
+
+    function syncAutoNextToggles(state) {
+      isAutoNext = state;
+      localStorage.setItem('hiragana_auto_next_enabled', state.toString());
+      if (navAutoNextToggle) navAutoNextToggle.checked = state;
+      if (mcqAutoNextToggle) mcqAutoNextToggle.checked = state;
+      if (shortAutoNextToggle) shortAutoNextToggle.checked = state;
+      if (listenAutoNextToggle) listenAutoNextToggle.checked = state;
+    }
+
+    function syncAutoNextDelay(val) {
+      autoNextDelay = parseFloat(val) || 1.8;
+      // Persist as the user's permanent default choice in localStorage
+      localStorage.setItem('hiragana_auto_next_delay', autoNextDelay.toString());
+      [navAutoNextDelay, mcqAutoNextDelay, shortAutoNextDelay, listenAutoNextDelay].forEach(sel => {
+        if (!sel) return;
+        for (let i = 0; i < sel.options.length; i++) {
+          if (Math.abs(parseFloat(sel.options[i].value) - autoNextDelay) < 0.05) {
+            sel.selectedIndex = i;
+            break;
+          }
+        }
+      });
+    }
+
+    if (navAutoNextToggle) navAutoNextToggle.addEventListener('change', (e) => syncAutoNextToggles(e.target.checked));
+    if (navAutoNextDelay) navAutoNextDelay.addEventListener('change', (e) => syncAutoNextDelay(e.target.value));
+    if (mcqAutoNextToggle) mcqAutoNextToggle.addEventListener('change', (e) => syncAutoNextToggles(e.target.checked));
+    if (shortAutoNextToggle) shortAutoNextToggle.addEventListener('change', (e) => syncAutoNextToggles(e.target.checked));
+    if (listenAutoNextToggle) listenAutoNextToggle.addEventListener('change', (e) => syncAutoNextToggles(e.target.checked));
+
+    if (mcqAutoNextDelay) mcqAutoNextDelay.addEventListener('change', (e) => syncAutoNextDelay(e.target.value));
+    if (shortAutoNextDelay) shortAutoNextDelay.addEventListener('change', (e) => syncAutoNextDelay(e.target.value));
+    if (listenAutoNextDelay) listenAutoNextDelay.addEventListener('change', (e) => syncAutoNextDelay(e.target.value));
+
+    const CONGRATS_MESSAGES = [
+      "Incredible Breakthrough! 🌟",
+      "Sugoi! Outstanding progress! 🌸",
+      "Subarashii! You conquered your nemesis kana! ⚡",
+      "Spectacular Mastery! Keep up the momentum! 🔥",
+      "Bravo! Accuracy breakthrough achieved! 🎉"
+    ];
+
+    function finishSession() {
+      if (autoNextTimeout) {
+        clearTimeout(autoNextTimeout);
+        autoNextTimeout = null;
+      }
+
+      activeSessionCompletedNaturally = true;
+
+      let completedDurationMs = null;
+      if (currentSessionMode === "test") {
+        completedDurationMs = stopTestTimer(true);
+      } else {
+        stopTestTimer(false);
+      }
+
+      showView('view-results');
+
+      const totalAttempts = sessionHistory.length;
+      const correctCount = sessionHistory.filter(h => h.isCorrect).length;
+      const wrongCount = totalAttempts - correctCount;
+      const accuracyPct = totalAttempts > 0 ? Math.round((correctCount / totalAttempts) * 100) : 0;
+
+      resAccuracy.textContent = `${accuracyPct}%`;
+      resCorrect.textContent = correctCount;
+      resWrong.textContent = wrongCount;
+
+      if (currentSessionMode === "test" && completedDurationMs !== null) {
+        resTimeTaken.textContent = formatDuration(completedDurationMs);
+        resTimeComparisonCard.classList.remove('hidden');
+
+        let modeTitle = "Flashcards";
+        if (currentActivity === "mcq") modeTitle = "Multiple Choice";
+        if (currentActivity === "short") modeTitle = "Short Answer";
+        if (currentActivity === "listening") modeTitle = "Listening Quiz";
+        
+        let setTitle = "Set 1 (30 Kana)";
+        if (currentSetKey === "set2") setTitle = "Set 2 (41 Kana)";
+        if (currentSetKey === "both") setTitle = "Combined (71 Kana)";
+
+        resTimeModeBadge.textContent = `${modeTitle} • ${setTitle}`;
+
+        const matchingPastRuns = testTimeRecords.filter(r => r.mode === currentActivity && r.setKey === currentSetKey);
+
+        if (matchingPastRuns.length > 0) {
+          const allTimeTotal = matchingPastRuns.reduce((acc, r) => acc + r.durationMs, 0);
+          const allTimeAvgMs = allTimeTotal / matchingPastRuns.length;
+          const diffAllTime = completedDurationMs - allTimeAvgMs;
+
+          if (diffAllTime < -500) {
+            resAllTimeTimeComp.innerHTML = `<span class="text-emerald-400 font-bold">${formatDuration(Math.abs(diffAllTime))} faster!</span> (Avg: ${formatDuration(allTimeAvgMs)}) 🚀`;
+          } else if (diffAllTime > 500) {
+            resAllTimeTimeComp.innerHTML = `<span class="text-rose-400 font-bold">${formatDuration(diffAllTime)} slower</span> (Avg: ${formatDuration(allTimeAvgMs)})`;
+          } else {
+            resAllTimeTimeComp.innerHTML = `<span class="text-slate-300 font-bold">On par</span> (Avg: ${formatDuration(allTimeAvgMs)})`;
+          }
+        } else {
+          resAllTimeTimeComp.innerHTML = `<span class="text-amber-300 font-semibold">First completed run logged! 🎯</span>`;
+        }
+
+        if (matchingPastRuns.length >= 1) {
+          const last8Runs = matchingPastRuns.slice(-8);
+          const running8Total = last8Runs.reduce((acc, r) => acc + r.durationMs, 0);
+          const running8AvgMs = running8Total / last8Runs.length;
+          const diff8 = completedDurationMs - running8AvgMs;
+
+          const runCountText = last8Runs.length === 8 ? "8-Run Avg" : `${last8Runs.length}-Run Avg`;
+
+          if (diff8 < -500) {
+            resRunning8TimeComp.innerHTML = `<span class="text-emerald-400 font-bold">${formatDuration(Math.abs(diff8))} faster!</span> (${runCountText}: ${formatDuration(running8AvgMs)}) ⚡`;
+          } else if (diff8 > 500) {
+            resRunning8TimeComp.innerHTML = `<span class="text-rose-400 font-bold">${formatDuration(diff8)} slower</span> (${runCountText}: ${formatDuration(running8AvgMs)})`;
+          } else {
+            resRunning8TimeComp.innerHTML = `<span class="text-slate-300 font-bold">Consistent pace</span> (${runCountText}: ${formatDuration(running8AvgMs)})`;
+          }
+        } else {
+          resRunning8TimeComp.innerHTML = `<span class="text-slate-400">Baseline will form after next runs</span>`;
+        }
+
+        testTimeRecords.push({
+          id: Date.now(),
+          mode: currentActivity,
+          setKey: currentSetKey,
+          durationMs: completedDurationMs,
+          accuracy: accuracyPct,
+          timestamp: Date.now()
+        });
+        saveStats();
+
+      } else {
+        resTimeTaken.textContent = "Untimed";
+        resTimeComparisonCard.classList.add('hidden');
+      }
+
+      const breakthroughKanaSet = new Set();
+      sessionHistory.forEach(h => {
+        if (h.isCorrect) {
+          const t = testStats[h.card.kana];
+          if (t) {
+            const histTotal = (t.correct || 0) + (t.incorrect || 0);
+            if (histTotal >= 2 && ((t.correct / histTotal) * 100) < 80) {
+              breakthroughKanaSet.add(h.card);
+            }
+          }
+        }
+      });
+
+      if (breakthroughKanaSet.size > 0) {
+        const randomPraise = CONGRATS_MESSAGES[Math.floor(Math.random() * CONGRATS_MESSAGES.length)];
+        breakthroughText.textContent = randomPraise;
+        breakthroughBanner.classList.remove('hidden');
+        breakthroughKanaChips.innerHTML = "";
+
+        breakthroughKanaSet.forEach(card => {
+          const chip = document.createElement('span');
+          chip.className = "inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold font-japanese";
+          chip.textContent = `${card.kana} (${card.romaji})`;
+          breakthroughKanaChips.appendChild(chip);
+        });
+      } else {
+        breakthroughBanner.classList.add('hidden');
+      }
+
+      let allTimeCorrectSum = 0;
+      let allTimeAttemptSum = 0;
+      const uniqueCards = [...new Set(sessionHistory.map(h => h.card.kana))];
+
+      uniqueCards.forEach(k => {
+        const stats = getCombinedKanaStats(k);
+        if (stats.total > 0) {
+          allTimeCorrectSum += stats.correct;
+          allTimeAttemptSum += stats.total;
+        }
+      });
+
+      if (allTimeAttemptSum > 0) {
+        const allTimeAvgPct = Math.round((allTimeCorrectSum / allTimeAttemptSum) * 100);
+        const diff = accuracyPct - allTimeAvgPct;
+        if (diff > 0) {
+          resComparison.textContent = `+${diff}% vs All-Time Baseline (${allTimeAvgPct}%) 📈`;
+          resComparison.className = "font-bold font-mono px-2.5 py-1 rounded-lg bg-emerald-950/60 border border-emerald-800 text-emerald-300";
+        } else if (diff < 0) {
+          resComparison.textContent = `${diff}% vs All-Time Baseline (${allTimeAvgPct}%)`;
+          resComparison.className = "font-bold font-mono px-2.5 py-1 rounded-lg bg-rose-950/60 border border-rose-800 text-rose-300";
+        } else {
+          resComparison.textContent = `Even with All-Time Baseline (${allTimeAvgPct}%)`;
+          resComparison.className = "font-bold font-mono px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-300";
+        }
+      } else {
+        resComparison.textContent = "First session recorded for these characters";
+        resComparison.className = "font-bold font-mono px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-400";
+      }
+
+      const missedMap = new Map();
+      sessionHistory.forEach(h => {
+        if (!h.isCorrect) {
+          missedMap.set(h.card.kana, h.card);
+        }
+      });
+
+      resMissedList.innerHTML = "";
+      if (missedMap.size > 0) {
+        resMissedContainer.classList.remove('hidden');
+        missedMap.forEach(card => {
+          const item = document.createElement('div');
+          item.className = "flex items-center justify-between p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs";
+          item.innerHTML = `
+            <div class="flex items-center gap-3">
+              <span class="text-2xl font-black text-rose-400 font-japanese">${card.kana}</span>
+              <div>
+                <span class="font-extrabold text-white">${card.romaji}</span>
+                <p class="text-[11px] text-slate-400">${card.hint}</p>
+              </div>
+            </div>
+            <button type="button" class="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-rose-400 listen-item-btn" title="Listen">
+              <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+            </button>
+          `;
+          item.querySelector('.listen-item-btn').addEventListener('click', () => speakKana(card.kana));
+          resMissedList.appendChild(item);
+        });
+      } else {
+        resMissedContainer.classList.add('hidden');
+      }
+
+      updateWeakestCount();
+    }
+
+    resRetryBtn.addEventListener('click', () => {
+      if (currentActivity === "flashcards") startFlashcards();
+      else if (currentActivity === "mcq") startMcq();
+      else if (currentActivity === "short") startShortAnswer();
+      else if (currentActivity === "listening") startListening();
+      else showView('view-menu');
+    });
+
+    resMenuBtn.addEventListener('click', () => showView('view-menu'));
+
+    function renderTimeAnalytics() {
+      const selectedSet = statsTimeSetSelect.value;
+      statsTimeGrid.innerHTML = "";
+
+      const modes = [
+        { key: "flashcards", name: "Flashcards", icon: "🗂️", color: "rose" },
+        { key: "mcq", name: "Multiple Choice", icon: "🎯", color: "indigo" },
+        { key: "short", name: "Short Answer", icon: "✍️", color: "emerald" },
+        { key: "listening", name: "Listening Quiz", icon: "🎧", color: "purple" }
+      ];
+
+      modes.forEach(m => {
+        const records = testTimeRecords.filter(r => r.mode === m.key && r.setKey === selectedSet);
+        const card = document.createElement('div');
+        card.className = "bg-slate-950 border border-slate-800/90 rounded-2xl p-4 space-y-3";
+
+        if (records.length === 0) {
+          card.innerHTML = `
+            <div class="flex items-center justify-between">
+              <span class="font-extrabold text-xs text-white flex items-center gap-1.5">
+                <span>${m.icon}</span> ${m.name}
+              </span>
+              <span class="text-[10px] font-mono text-slate-400 bg-slate-900 px-2 py-0.5 rounded-full">0 tests</span>
+            </div>
+            <div class="py-3 text-center">
+              <p class="text-[11px] text-slate-400 italic">No completed tests</p>
+            </div>
+            <div class="pt-2 border-t border-slate-900 flex justify-between text-[10px] text-slate-400 font-mono">
+              <span>Best: --</span>
+              <span>8-Run Avg: --</span>
+            </div>
+          `;
+        } else {
+          const totalMs = records.reduce((acc, r) => acc + r.durationMs, 0);
+          const allTimeAvgMs = totalMs / records.length;
+          const bestMs = Math.min(...records.map(r => r.durationMs));
+
+          const last8 = records.slice(-8);
+          const running8AvgMs = last8.reduce((acc, r) => acc + r.durationMs, 0) / last8.length;
+
+          card.innerHTML = `
+            <div class="flex items-center justify-between">
+              <span class="font-extrabold text-xs text-white flex items-center gap-1.5">
+                <span>${m.icon}</span> ${m.name}
+              </span>
+              <span class="text-[10px] font-mono font-bold text-rose-300 bg-rose-950/60 px-2 py-0.5 rounded-full border border-rose-900/60">
+                ${records.length} ${records.length === 1 ? 'test' : 'tests'}
+              </span>
+            </div>
+
+            <div class="space-y-1">
+              <div class="flex justify-between items-baseline">
+                <span class="text-[10px] uppercase font-bold text-slate-400">All-Time Avg:</span>
+                <span class="font-mono font-black text-sm text-slate-100">${formatDuration(allTimeAvgMs)}</span>
+              </div>
+              <div class="flex justify-between items-baseline">
+                <span class="text-[10px] uppercase font-bold text-amber-400/90">Last 8 Avg:</span>
+                <span class="font-mono font-black text-sm text-amber-300">${formatDuration(running8AvgMs)}</span>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-900 flex justify-between items-center text-[10px] font-mono">
+              <span class="text-emerald-400 font-bold">Fastest: ${formatDuration(bestMs)}</span>
+              <span class="text-slate-400">${last8.length}/8 run window</span>
+            </div>
+          `;
+        }
+
+        statsTimeGrid.appendChild(card);
+      });
+    }
+
+    statsTimeSetSelect.addEventListener('change', renderTimeAnalytics);
+
+    function renderStatsTable() {
+      renderTimeAnalytics();
+
+      const activeStorage = (statsDatasetSelect.value === "practice") ? practiceStats : testStats;
+      const modeFilter = statsModeSelect.value;
+      const dirFilter = statsDirSelect.value;
+      const query = statsSearchInput.value.trim().toLowerCase();
+
+      statsTableBody.innerHTML = "";
+      const allCharacters = [...HIRAGANA_SET_1, ...HIRAGANA_SET_2];
+
+      const rows = allCharacters.map(card => {
+        const entry = activeStorage[card.kana];
+        let correct = 0;
+        let incorrect = 0;
+
+        if (entry) {
+          if (modeFilter === "all" && dirFilter === "all") {
+            correct = entry.correct || 0;
+            incorrect = entry.incorrect || 0;
+          } else if (modeFilter !== "all" && dirFilter === "all") {
+            const m = entry.byMode && entry.byMode[modeFilter];
+            if (m) { correct = m.correct || 0; incorrect = m.incorrect || 0; }
+          } else if (modeFilter === "all" && dirFilter !== "all") {
+            const d = entry.byDirection && entry.byDirection[dirFilter];
+            if (d) { correct = d.correct || 0; incorrect = d.incorrect || 0; }
+          } else {
+            const m = entry.byMode && entry.byMode[modeFilter];
+            if (m) { correct = m.correct || 0; incorrect = m.incorrect || 0; }
+          }
+        }
+
+        const attempts = correct + incorrect;
+        const accuracy = attempts > 0 ? Math.round((correct / attempts) * 100) : null;
+        return { card, correct, incorrect, attempts, accuracy };
+      }).filter(item => {
+        if (!query) return true;
+        return item.card.kana.includes(query) || item.card.romaji.toLowerCase().includes(query);
+      });
+
+      if (rows.length === 0) {
+        statsTableBody.innerHTML = `<tr><td colspan="6" class="text-center py-6 text-slate-400">No matching characters found.</td></tr>`;
+        return;
+      }
+
+      rows.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-800/40 transition";
+        const accColor = r.accuracy === null ? "text-slate-400" :
+                         r.accuracy >= 90 ? "text-emerald-400 font-bold" :
+                         r.accuracy >= 70 ? "text-amber-400 font-bold" : "text-rose-400 font-bold";
+
+        tr.innerHTML = `
+          <td class="py-3 px-4 font-japanese text-base font-bold text-white">${r.card.kana}</td>
+          <td class="py-3 px-4 font-bold text-slate-300">${r.card.romaji}</td>
+          <td class="py-3 px-4 text-center text-emerald-400 font-bold">${r.correct}</td>
+          <td class="py-3 px-4 text-center text-rose-400 font-bold">${r.incorrect}</td>
+          <td class="py-3 px-4 text-center text-slate-300">${r.attempts}</td>
+          <td class="py-3 px-4 text-right ${accColor}">${r.accuracy !== null ? `${r.accuracy}%` : "—"}</td>
+        `;
+        statsTableBody.appendChild(tr);
+      });
+    }
+
+    [statsDatasetSelect, statsModeSelect, statsDirSelect].forEach(el => el.addEventListener('change', renderStatsTable));
+    statsSearchInput.addEventListener('input', renderStatsTable);
+
+    statsResetBtn.addEventListener('click', () => {
+      resetConfirmModal.classList.remove('hidden');
+    });
+
+    resetCancelBtn.addEventListener('click', () => resetConfirmModal.classList.add('hidden'));
+
+    resetConfirmBtn.addEventListener('click', () => {
+      if (statsDatasetSelect.value === "practice") {
+        practiceStats = {};
+      } else {
+        testStats = {};
+        testTimeRecords = [];
+      }
+      saveStats();
+      resetConfirmModal.classList.add('hidden');
+      renderStatsTable();
+      updateWeakestCount();
+    });
+
+    if (challengeStayBtn) {
+      challengeStayBtn.addEventListener('click', () => {
+        if (challengeExitModal) challengeExitModal.classList.add('hidden');
+        pendingExitAction = null;
+      });
+    }
+
+    if (challengeLeaveBtn) {
+      challengeLeaveBtn.addEventListener('click', () => {
+        if (challengeExitModal) challengeExitModal.classList.add('hidden');
+        stopTestTimer(false);
+        const action = pendingExitAction;
+        pendingExitAction = null;
+        if (action) action();
+      });
+    }
+
+    navHomeBtn.addEventListener('click', () => {
+      requestChallengeExit(() => showView('view-menu'));
+    });
+    navMenuBtn.addEventListener('click', () => {
+      requestChallengeExit(() => showView('view-menu'));
+    });
+
+    navStatsBtn.addEventListener('click', () => {
+      requestChallengeExit(() => {
+        showView('view-stats');
+        renderStatsTable();
+      });
+    });
+
+    statsCloseBtn.addEventListener('click', () => showView('view-menu'));
+
+    navEndSessionBtn.addEventListener('click', () => {
+      finishSession();
+    });
+
+    // Back Button Click Handlers
+    [navBackBtn, fcBackBtn, mcqBackBtn, shortBackBtn, listenBackBtn].forEach(btn => {
+      if (btn) btn.addEventListener('click', goBackToPreviousQuestion);
+    });
+
+    // Dual prompt buttons event handlers
+    if (navDirHiraganaBtn) {
+      navDirHiraganaBtn.addEventListener('click', () => setPromptDirection("hiragana_front"));
+    }
+    if (navDirRomajiBtn) {
+      navDirRomajiBtn.addEventListener('click', () => setPromptDirection("romaji_front"));
+    }
+    if (navDirSwapBtn) {
+      navDirSwapBtn.addEventListener('click', () => {
+        setPromptDirection(promptDirection === "romaji_front" ? "hiragana_front" : "romaji_front");
+      });
+    }
+
+    // Voice Modal Wiring
+    navVoiceBtn.addEventListener('click', () => {
+      voiceModal.classList.remove('hidden');
+      populateVoices();
+      voiceSpeedSlider.value = appVoiceSpeed;
+      voiceSpeedVal.textContent = `${appVoiceSpeed.toFixed(1)}x`;
+      if (voiceMikuToggle) voiceMikuToggle.checked = isMikuVoice;
+    });
+
+    voiceModalClose.addEventListener('click', () => voiceModal.classList.add('hidden'));
+
+    if (voiceMikuToggle) {
+      voiceMikuToggle.addEventListener('change', (e) => {
+        isMikuVoice = e.target.checked;
+        localStorage.setItem('hiragana_voice_miku', isMikuVoice.toString());
+      });
+    }
+
+    if (voicePickerSelect) {
+      voicePickerSelect.addEventListener('change', (e) => {
+        selectedVoiceURI = e.target.value;
+        localStorage.setItem('hiragana_voice_uri', selectedVoiceURI);
+      });
+    }
+
+    voiceSpeedSlider.addEventListener('input', (e) => {
+      setVoiceSpeed(e.target.value);
+    });
+
+    voiceTestBtn.addEventListener('click', () => {
+      selectedVoiceURI = voicePickerSelect.value;
+      localStorage.setItem('hiragana_voice_uri', selectedVoiceURI);
+      speakKana(isMikuVoice ? "みくみくにしてあげる！" : "こんにちは", appVoiceSpeed);
+    });
+
+    voiceSaveBtn.addEventListener('click', () => {
+      selectedVoiceURI = voicePickerSelect.value;
+      setVoiceSpeed(voiceSpeedSlider.value);
+      localStorage.setItem('hiragana_voice_uri', selectedVoiceURI);
+      if (voiceMikuToggle) {
+        isMikuVoice = voiceMikuToggle.checked;
+        localStorage.setItem('hiragana_voice_miku', isMikuVoice.toString());
+      }
+      voiceModal.classList.add('hidden');
+    });
+
+    // Set Selection Radios
+    setCard1.addEventListener('click', () => {
+      currentSetKey = "set1";
+      document.querySelector('input[value="set1"]').checked = true;
+      updateSetHighlight();
+      updateTopBadge();
+    });
+
+    setCard2.addEventListener('click', () => {
+      currentSetKey = "set2";
+      document.querySelector('input[value="set2"]').checked = true;
+      updateSetHighlight();
+      updateTopBadge();
+    });
+
+    setCardBoth.addEventListener('click', () => {
+      currentSetKey = "both";
+      document.querySelector('input[value="both"]').checked = true;
+      updateSetHighlight();
+      updateTopBadge();
+    });
+
+    // Mode Buttons
+    modePracticeBtn.addEventListener('click', () => setSessionMode('practice'));
+    modeTestBtn.addEventListener('click', () => setSessionMode('test'));
+
+    // Practice Toggles
+    unlimitedPracticeToggle.addEventListener('change', (e) => {
+      isUnlimitedPractice = e.target.checked;
+    });
+
+    weakestPracticeToggle.addEventListener('change', (e) => {
+      isPracticeWeakestOnly = e.target.checked;
+      updateTopBadge();
+    });
+
+    // Activity Starter Buttons
+    startFlashcardsBtn.addEventListener('click', startFlashcards);
+    startMcqBtn.addEventListener('click', startMcq);
+    startShortBtn.addEventListener('click', startShortAnswer);
+    startListeningBtn.addEventListener('click', startListening);
+
+    // Keyboard Shortcuts
+    window.addEventListener('keydown', (e) => {
+      if (e.code === "Space") {
+        if (currentActivity === "flashcards" && !viewFlashcards.classList.contains('hidden')) {
+          e.preventDefault();
+          flipCard();
+        } else if (currentActivity === "listening" && !viewListening.classList.contains('hidden') && document.activeElement !== listenInput) {
+          e.preventDefault();
+          if (activeDeck[currentIndex]) speakKana(activeDeck[currentIndex].kana, appVoiceSpeed);
+        }
+      } else if (e.key === "Backspace" || e.key === "ArrowLeft") {
+        if (
+          document.activeElement !== shortInput &&
+          document.activeElement !== listenInput &&
+          document.activeElement !== statsSearchInput
+        ) {
+          if (currentSessionMode === "practice" && (currentIndex > 0 || sessionHistory.length > currentIndex)) {
+            e.preventDefault();
+            goBackToPreviousQuestion();
+          }
+        }
+      }
+    });
+
+    window.addEventListener('beforeunload', (e) => {
+      if (isChallengeActive()) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
+
+    // Reliable application initialization across reloads and iframes
+    function initApp() {
+      updateSetHighlight();
+      setSessionMode('practice');
+      setVoiceSpeed(appVoiceSpeed);
+      syncAutoNextToggles(isAutoNext);
+      syncAutoNextDelay(autoNextDelay);
+      setFlashcardAnimation(isFlashcardAnimEnabled);
+      if (fcAnimToggle) {
+        fcAnimToggle.addEventListener('change', (e) => {
+          setFlashcardAnimation(e.target.checked);
+        });
+      }
+      updateTopBadge();
+      populateVoices();
+    }
+
+    if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', initApp);
+    } else {
+      initApp();
+    }
+  </script>
+</body>
+</html>
